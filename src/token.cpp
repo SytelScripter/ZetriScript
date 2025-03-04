@@ -21,7 +21,7 @@ enum toktype {
 };
 
 std::vector<std::string> keywords_list = {
-    "PolyScript",
+    "ZetriScript",
     "LINE",
     "allocSpace",
     "drawPixel"
