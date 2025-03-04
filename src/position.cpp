@@ -1,7 +1,8 @@
 #include <iostream>
 
 enum specialpos {
-    ENTRY
+    ENTRY,
+    POS_DECL
 };
 
 class Position {

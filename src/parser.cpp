@@ -55,43 +55,68 @@ class Parser {
         return false;
     }
 
+    inline NodeProg gotoPos(Position pos) {
+        // looking forward without parsing.
+        int tempIdx, oldIdx = idx;
+        while (tempIdx < tokens.size()) {
+            std::variant<Position, specialpos> advance_pos = specialpos::POS_DECL;
+            NodePosition currentPos = parsePos(advance_pos);
+            if (currentPos.posX == pos.posX && currentPos.posY == pos.posY && currentPos.posZ == pos.posZ) {
+                break;
+            }
+            tempIdx++;
+        }
+        std::variant<Position, specialpos> posTemp = currentPos;
+        idx = tempIdx;
+        NodeProg parseResult = parse(posTemp);
+        idx = oldIdx;
+        return parseResult;
+    }
+
     public:
     Parser(std::vector<Token> tokens_) : tokens(tokens_) {
         advance();
     }
 
-    NodeNumber parseNumber() {
-
+    NodeNumber parseNumber(std::variant<Position, specialpos> pos) {
+        if (currentToken.type != toktype::int_lit && currentToken.type != toktype::float_lit) {
+            Error error(pos, errortype::syntax, "EXPECTED '['");
+        }
+        Token numTok(currentToken.type, currentToken.value);
+        advance();
+        NodeNumber result;
+        result.numTok = numTok;
+        return result;
     }
 
-    NodePosition parsePos() {
+    NodePosition parsePos(std::variant<Position, specialpos> pos) {
         if (currentToken.type != '[') {
-            std::variant<Position, specialpos> pos = specialpos::ENTRY; // temporary, it's Position class.
             Error error(pos, errortype::syntax, "EXPECTED '['");
         }
         advance();
-        NodeNumber posX = parseNumber();
+        NodeNumber posX = parseNumber(pos);
         advance();
         if (currentToken.type != ':') {
-            std::variant<Position, specialpos> pos = specialpos::ENTRY; // temporary, it's Position class.
             Error error(pos, errortype::syntax, "EXPECTED ':'");
         }
         advance();
-        NodeNumber posY = parseNumber();
+        NodeNumber posY = parseNumber(pos);
         advance();
         if (currentToken.type != ':') {
-            std::variant<Position, specialpos> pos = specialpos::ENTRY; // temporary, it's Position class.
             Error error(pos, errortype::syntax, "EXPECTED ':'");
         }
         advance();
-        NodeNumber posZ = parseNumber();
+        NodeNumber posZ = parseNumber(pos);
         advance();
         if (currentToken.type != ']') {
-            std::variant<Position, specialpos> pos = specialpos::ENTRY; // temporary, it's Position class.
             Error error(pos, errortype::syntax, "EXPECTED ']'");
         }
         advance();
-        NodePosition result();
+        if (currentToken.type != ':') {
+            Error error(pos, errortype::syntax, "EXPECTED ':'");
+        }
+        advance();
+        NodePosition result;
         result.x = posX;
         result.y = posY;
         result.z = posZ;
@@ -99,18 +124,19 @@ class Parser {
         return result;
     }
 
-    NodeProg parse() {
+    NodeProg parse(std::variant<Position, specialpos> pos) {
         if (!isTok(toktype::keyword, "ZetriScript")) {
-            std::variant<Position, specialpos> pos = specialpos::ENTRY;
             Error error(pos, errortype::syntax, "EXPECTED 'ZetriScript' KEYWORD AT THE MAIN ENTERANCE");
         }
         advance();
         if (currentToken.type != toktype::exc_mark) {
-            std::variant<Position, specialpos> pos = specialpos::ENTRY;
             Error error(pos, errortype::syntax, "EXPECTED ENTRY CALL FOR EXECUTION");
         }
         advance();
+        NodePosition startingPosition;
 
+        std::variant<Position, specialpos> advance_pos = specialpos::POS_DECL;
+        startingPosition = parsePos(advance_pos);
         
     }
 
