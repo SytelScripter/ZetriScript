@@ -17,6 +17,13 @@ enum toktype {
     dot
 };
 
+std::vector<std::string> keywords_list = {
+    "PolyScript",
+    "LINE",
+    "allocSpace",
+    "drawPixel"
+};
+
 class Token {
     public:
     toktype type;
