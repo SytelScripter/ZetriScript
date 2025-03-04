@@ -8,9 +8,9 @@ struct NodeNumber {
 }
 
 struct NodePosition {
-    std::string x;
-    std::string y;
-    std::string z;
+    NodeNumber x;
+    NodeNumber y;
+    NodeNumber z;
 };
 
 struct NodeLine {
@@ -60,12 +60,58 @@ class Parser {
         advance();
     }
 
+    NodeNumber parseNumber() {
+
+    }
+
+    NodePosition parsePos() {
+        if (currentToken.type != '[') {
+            std::variant<Position, specialpos> pos = specialpos::ENTRY; // temporary, it's Position class.
+            Error error(pos, errortype::syntax, "EXPECTED '['");
+        }
+        advance();
+        NodeNumber posX = parseNumber();
+        advance();
+        if (currentToken.type != ':') {
+            std::variant<Position, specialpos> pos = specialpos::ENTRY; // temporary, it's Position class.
+            Error error(pos, errortype::syntax, "EXPECTED ':'");
+        }
+        advance();
+        NodeNumber posY = parseNumber();
+        advance();
+        if (currentToken.type != ':') {
+            std::variant<Position, specialpos> pos = specialpos::ENTRY; // temporary, it's Position class.
+            Error error(pos, errortype::syntax, "EXPECTED ':'");
+        }
+        advance();
+        NodeNumber posZ = parseNumber();
+        advance();
+        if (currentToken.type != ']') {
+            std::variant<Position, specialpos> pos = specialpos::ENTRY; // temporary, it's Position class.
+            Error error(pos, errortype::syntax, "EXPECTED ']'");
+        }
+        advance();
+        NodePosition result();
+        result.x = posX;
+        result.y = posY;
+        result.z = posZ;
+
+        return result;
+    }
+
     NodeProg parse() {
         if (!isTok(toktype::keyword, "ZetriScript")) {
             std::variant<Position, specialpos> pos = specialpos::ENTRY;
-            Error error(pos, errortype::syntax, "EXPECTED 'ZetriScript' keyword at main enterance");
-
+            Error error(pos, errortype::syntax, "EXPECTED 'ZetriScript' KEYWORD AT THE MAIN ENTERANCE");
         }
+        advance();
+        if (currentToken.type != toktype::exc_mark) {
+            std::variant<Position, specialpos> pos = specialpos::ENTRY;
+            Error error(pos, errortype::syntax, "EXPECTED ENTRY CALL FOR EXECUTION");
+        }
+        advance();
+
+        
     }
 
 }
