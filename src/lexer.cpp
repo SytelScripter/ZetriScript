@@ -23,7 +23,9 @@ private:
     }
 
 public:
-    Lexer(std::string text_) : text(text_) {}
+    Lexer(std::string text_) : text(text_) {
+        advance();
+    }
 
     std::vector<Tokens> makeTokens() {
         std::vector<Token> tokens;
