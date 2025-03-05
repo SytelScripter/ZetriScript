@@ -117,13 +117,6 @@ class ParseResult {
     inline T getKnownNode() {
         return std::get<T>(nodeResult);
     }
-    
-    inline void checkError(ParseResult* result) {
-        if (result->hasError()) {
-            error = std::move(result->error);
-        }
-        nodeResult = std::move(result->getValue());
-    }
 };
 
 class Parser {
