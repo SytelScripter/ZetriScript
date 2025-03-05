@@ -5,7 +5,7 @@
 #include <variant>
 
 struct NodeNumber {
-    std::optional<Position> pos;
+    Position pos;
     Token_ numTok;
 };
 
@@ -22,23 +22,23 @@ struct NodePositionAssign {
 };
 
 struct NodeVarAccess {
-    std::optional<Position> pos;
+    Position pos;
     Token_ identName;
 };
 
 struct NodeVarAssign {
-    std::optional<Position> pos;
+    Position pos;
     NodeVarAccess ident;
     std::variant<NodeLine, NodeVarAccess, NodeAlloc> value;
 };
 
 struct NodeAlloc {
-    std::optional<Position> pos;
+    Position pos;
     NodeVarAccess allocated;
 };
 
 struct NodeLine {
-    std::optional<Position> pos;
+    Position pos;
     NodePositionAccess pos1;
     NodePositionAccess pos2;
     NodeNumber start;
@@ -47,17 +47,17 @@ struct NodeLine {
 };
 
 struct NodeGoto {
-    std::optional<Position> pos;
+    Position pos;
     NodePositionAccess nextPos;
 };
 
 struct NodeSegment {
-    std::optional<Position> pos;
+    Position pos;
     std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeVarAccess, NodeNumber, NodeGoto>> content;
 };
 
 struct NodeExec {
-    std::optional<Position> pos;
+    Position pos;
     NodeVarAccess identName;
 };
 
@@ -161,9 +161,8 @@ class Parser {
     }
 
     ParseResult parseVarAssign(std::variant<Position, specialpos> pos) {
-        std::optional<Error> temp;
         ParseResult parse_result = ParseResult();
-        temp = checkSyntaxError(toktype::name, "IDENTIFIER");
+        std::optional<Error> temp = checkSyntaxError(toktype::name, "IDENTIFIER");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -180,13 +179,14 @@ class Parser {
         }
 
         std::variant<NodeLine, NodeVarAccess, NodeAlloc, NodeGoto> value;
+        
         ParseResult value_result = ParseResult();
         if (isTok(toktype::keyword, "allocSpace")) {
-            value_result.checkError(&parseAlloc(position_code));
+            value_result = parseAlloc(position_code);
             if (value_result.hasError()) return value_result;
         }
         else if (isTok(toktype::keyword, "LINE")) {
-            value_result.checkError(&parseLine(position_code));
+            value_result = parseLine(position_code);
             if (value_result.hasError()) return value_result;
         }
         value = value_result.getValue();
