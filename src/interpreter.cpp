@@ -12,25 +12,23 @@ class Interpreter {
         return false;
     }
 
-    public:
-    Interpreter(NodeProg program_) : program(program_) {
-        startingPos.posX = std::move(program.startingPosition.x.value);
-        startingPos.posY = std::move(program.startingPosition.y.value);
-        startingPos.posZ = std::move(program.startingPosition.z.value);
+    inline Position convertNode(NodePositionAccess node_pos) {
+        Position result(node_pos.x.numTok.value, node_pos.y.numTok.value, node_pos.z.numTok.value);
+        return result;
     }
 
-    void visit(anynode node) {
-        auto result = std::visit([](auto&& value) {
-            if constexpr(std::is_same_v<std::decay_t<decltype(value)>, NodeProg>) {
-                int i = 0;
-                while (!comparePos(value.code[i].pos, startingPos)) {
-                    i++;
-                }
-                return visit(value.code[i]);
-            }
-            else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, NodeSegment>) {
-                // continue that afterwards
-            }
-        }, node);
+    public:
+    Interpreter(NodeProg program_) : program(program_) {
+        startingPos.posX = std::move(program.startingPosition.x.numTok.value);
+        startingPos.posY = std::move(program.startingPosition.y.numTok.value);
+        startingPos.posZ = std::move(program.startingPosition.z.numTok.value);
+    }
+
+    NodeProg visitProg() {
+        int i = 0;
+        while (!comparePos(startingPos, convertNode(program.code[i].pos))) {
+            i++;
+        }
+
     }
 }

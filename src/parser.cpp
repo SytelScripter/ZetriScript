@@ -14,7 +14,7 @@ struct NodePositionAccess {
     NodeNumber z;
 };
 
-struct NodePositionAsign {
+struct NodePositionAssign {
     NodeNumber x;
     NodeNumber y;
     NodeNumber z;
@@ -37,7 +37,7 @@ struct NodeAlloc {
 };
 
 struct NodeLine {
-    Position pos
+    Position pos;
     NodePosition pos1;
     NodePosition pos2;
 };
@@ -49,7 +49,7 @@ struct NodeGoto {
 
 struct NodeSegment {
     Position pos;
-    std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeIdentifier, NodeNumber, NodeGoto> content;
+    std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeIdentifier, NodeNumber, NodeGoto>> content;
 };
 
 struct NodeExec {
@@ -463,30 +463,44 @@ class Parser {
         NodePositionAccess segment_position = pos_result.getValue();
         std::variant<Position, specialpos> position_code = Position(segment_position.x.numTok.value, segment_position.y.numTok.value, segment_position.z.numTok.value);
         
-        ParseResult content = ParseResult();
-        if (isTok(toktype::keyword, "allocSpace")) {
-            content.checkError(&parseAlloc(position_code));
-            if (content.hasError()) return content;
-        }
-        else if (look_forward(1).type == toktype::equals) {
-            content.checkError(&parseVarAssign(position_code));
-            if (content.hasError()) return content;
-        }
-        else if (isTok(toktype::keyword, "LINE")) {
-            content.checkError(&parseLine(position_code));
-            if (content.hasError()) return content;
-        }
-        else if (look_forward(1).type == toktype::exc_mark) {
-            content.checkError(&parseExecution(position_code));
-            if (content.hasError()) return content;
-        }
-        else if (isTok(toktype::keyword, "goto")) {
-            content.checkError(&parseGoto(position_code));
-            if (content.hasError()) return content;
-        }
-
         result.pos = std::move(position_code);
-        result.content = std::move(content.getValue());
+
+        while (currentToken.type != toktype::exc_mark) {
+            ParseResult content = ParseResult();
+            if (isTok(toktype::keyword, "allocSpace")) {
+                content.checkError(&parseAlloc(position_code));
+                if (content.hasError()) return content;
+            }
+            else if (look_forward(1).type == toktype::equals) {
+                content.checkError(&parseVarAssign(position_code));
+                if (content.hasError()) return content;
+            }
+            else if (isTok(toktype::keyword, "LINE")) {
+                content.checkError(&parseLine(position_code));
+                if (content.hasError()) return content;
+            }
+            else if (look_forward(1).type == toktype::exc_mark) {
+                content.checkError(&parseExecution(position_code));
+                if (content.hasError()) return content;
+            }
+            else if (isTok(toktype::keyword, "goto")) {
+                content.checkError(&parseGoto(position_code));
+                if (content.hasError()) return content;
+            }
+
+            temp = checkSyntaxError(toktype::semicolon, "';'");
+            if (temp.has_value()) {
+                parse_result.setError(temp.value());
+                return parse_result;
+            }
+
+            if (idx >= tokens.size() || isTok(toktype::keyword, "ZetriScript")) {
+                parse_result.setErrorDirectly(pos, errortype::syntax, "'!' AT THE END OF THE INSTRUCTION");
+                return parse_result;
+            }
+
+            result.content.push_back(std::move(content.getValue()));
+        }
 
         parse_result.Node = std::move(result);
         return parse_result;
@@ -519,7 +533,7 @@ class Parser {
             segment_result.checkError(&parseSegment(pos_advance));
             if (segment_result.hasError()) return segment_result;
             code.push_back(std::move(segment_result.getKnownNode<NodeSegment>()));
-            if (idx == tokens.size()) {
+            if (idx >= tokens.size()) {
                 parse_result.setErrorDirectly(pos_advance, errortype::syntax, "'ZetriScript' KEYWORD AT THE END OF THE FILE");
                 return parse_result;
             }
