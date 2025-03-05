@@ -496,8 +496,7 @@ class Parser {
         NodeSegment result;
         
         std::variant<Position, specialpos> pos_advance = specialpos::POS_DECL;
-        ParseResult pos_result = ParseResult()
-        pos_result.checkError(parseAssignPos(pos_advance));
+        ParseResult pos_result = parseAssignPos(pos_advance);
         if (pos_result.hasError()) return pos_result;
 
         NodePositionAccess segment_position = pos_result.getValue();
