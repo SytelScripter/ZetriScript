@@ -98,7 +98,7 @@ class ParseResult {
     }
 
     inline void setError(Error error_) {
-        error = std::move(error_);
+        error = error_;
     }
 
     inline void setErrorDirectly(std::variant<Position, specialpos> pos, errortype errorType, std::string description) {
@@ -188,10 +188,10 @@ class Parser {
 
         NodeVarAssign result;
         result.pos = pos;
-        result.ident = std::move(identifier);
-        result.value = std::move(value);
+        result.ident = identifier;
+        result.value = value;
 
-        parse_result.nodeResult = std::move(result);
+        parse_result.nodeResult = result;
         return parse_result;
     }
 
@@ -208,7 +208,7 @@ class Parser {
         result.pos = pos;
         result.numTok = std::move(numTok);
         
-        parse_result.nodeResult = std::move(result);
+        parse_result.nodeResult = result;
         return parse_result;
     }
 
@@ -284,10 +284,10 @@ class Parser {
         result.pos = pos;
         result.pos1 = std::move(pos1);
         result.pos2 = std::move(pos2);
-        result.start = std::move(start);
-        result.end = std::move(end);
-        result.step = std::move(step);
-        parse_result.nodeResult = std::move(result);
+        result.start = start;
+        result.end = end;
+        result.step = step;
+        parse_result.nodeResult = result;
         return parse_result;
     }
 
@@ -311,7 +311,7 @@ class Parser {
 
         NodeExec result;
         result.identName = ident;
-        parse_result.nodeResult = std::move(result);
+        parse_result.nodeResult = result;
         return parse_result;
     }
 
@@ -353,9 +353,9 @@ class Parser {
 
         NodeAlloc result;
         result.pos = pos;
-        result.allocated = std::move(allocated);
+        result.allocated = allocated;
         
-        parse_result.nodeResult = std::move(result);
+        parse_result.nodeResult = result;
         return parse_result;
     }
 
@@ -401,7 +401,7 @@ class Parser {
         result.y = std::move(posY);
         result.z = std::move(posZ);
 
-        parse_result.nodeResult = std::move(result);
+        parse_result.nodeResult = result;
         return parse_result;
     }
     
@@ -453,7 +453,7 @@ class Parser {
         result.y = std::move(posY);
         result.z = std::move(posZ);
 
-        parse_result.setNode(std::move(result));
+        parse_result.setNode(result);
         return parse_result;
     }
 
@@ -481,7 +481,7 @@ class Parser {
         result.pos = pos;
         result.nextPos = std::move(nextPos);
 
-        parse_result.nodeResult = std::move(result);
+        parse_result.nodeResult = result;
         return parse_result;
     }
 
@@ -537,7 +537,7 @@ class Parser {
             result.content.push_back(std::move(content.getValue()));
         }
 
-        parse_result.nodeResult = std::move(result);
+        parse_result.nodeResult = result;
         return parse_result;
     }
 
@@ -577,8 +577,8 @@ class Parser {
         
         NodeProg result;
         result.startingPosition = std::move(startingPosition);
-        result.code = std::move(code);
-        parse_result.nodeResult = std::move(result);
+        result.code = code;
+        parse_result.nodeResult = result;
         return parse_result;
     }
 
