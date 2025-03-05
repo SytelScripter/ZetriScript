@@ -5,7 +5,7 @@
 
 struct NodeNumber {
     Position pos;
-    Token numTok;
+    Token_ numTok;
 };
 
 struct NodePositionAccess {
@@ -22,7 +22,7 @@ struct NodePositionAssign {
 
 struct NodeVarAccess {
     Position pos;
-    Token identName;
+    Token_ identName;
 };
 
 struct NodeVarAssign {
@@ -121,8 +121,8 @@ class ParseResult {
 class Parser {
     private:
     int idx = -1;
-    Token currentToken;
-    std::vector<Token> tokens;
+    Token_ currentToken;
+    std::vector<Token_> tokens;
 
     inline void advance() {
         idx++;
@@ -131,7 +131,7 @@ class Parser {
         }
     }
 
-    inline Token look_forward(int j) {
+    inline Token_ look_forward(int j) {
         return tokens[idx + j];
     }
 
@@ -151,7 +151,7 @@ class Parser {
     }
 
     public:
-    Parser(std::vector<Token> tokens_) : tokens(tokens_) {
+    Parser(std::vector<Token_> tokens_) : tokens(tokens_) {
         advance();
     }
 
@@ -202,7 +202,7 @@ class Parser {
             parse_result.setError(error);
             return parse_result;
         }
-        Token numTok(currentToken.type, currentToken.value);
+        Token_ numTok(currentToken.type, currentToken.value);
         advance();
         NodeNumber result;
         result.pos = pos;

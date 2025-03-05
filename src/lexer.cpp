@@ -34,10 +34,10 @@ public:
                 advance();
             }
             else if (std::isalpha(currentChar)) {
-                Token_s.push_back(makeText());
+                tokens.push_back(makeText());
             }
             else if (std::isdigit(currentChar)) {
-                Token_s.push_back(makeNumber());
+                tokens.push_back(makeNumber());
             }
             else if (currentChar == '{') addToken_(toktype::left_curly);
             else if (currentChar == '}') addToken_(toktype::right_curly);
@@ -54,7 +54,7 @@ public:
             else if (currentChar == '.') addToken_(toktype::dot);
         }
 
-        return Token_s;
+        return tokens;
     }
 
     Token_ makeText() {

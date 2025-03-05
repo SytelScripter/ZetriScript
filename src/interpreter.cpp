@@ -9,13 +9,13 @@ using possibleReturnValues = std::optional<std::vector<Position>>;
 
 class SymbolTable {
     public:
-    std::unordered_map<Token, possibleReturnValues> variables;
+    std::unordered_map<Token_, possibleReturnValues> variables;
 
-    void setValue(Token ident, possibleReturnValues value) {
+    void setValue(Token_ ident, possibleReturnValues value) {
         variables[ident] = value;
     }
 
-    possibleReturnValues getValue(Token ident) {
+    possibleReturnValues getValue(Token_ ident) {
         if (!variables.find(ident)) {
             return std::nullopt;
         }
