@@ -229,7 +229,7 @@ class Parser {
         value = value_result.getValue();
 
         NodeVarAssign result;
-        result.pos = pos;
+        result.pos = std::get<Position>(pos);
         result.ident = std::move(identifier);
         result.value = std::move(value);
 
@@ -247,7 +247,7 @@ class Parser {
         Token_ numTok(currentToken.type, currentToken.value);
         advance();
         NodeNumber result;
-        result.pos = pos;
+        result.pos = std::get<Position>(pos);
         result.numTok = std::move(numTok);
         
         parse_result.setNode(std::move(result));
@@ -258,8 +258,7 @@ class Parser {
         std::optional<Error> temp;
         ParseResult parse_result = ParseResult();
         if (!isTok(toktype::keyword, "LINE")) {
-            Error error = Error(pos, errortype::syntax, "EXPECTED KEYWORD 'LINE'");
-            parse_result.setError(error);
+            parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED KEYWORD 'LINE'");
             return parse_result;
         }
         advance();
