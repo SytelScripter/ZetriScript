@@ -1,6 +1,6 @@
 #include "position.cpp"
 
-enum errortype {
+enum class errortype {
     none = -1,
     illegalChar,
     syntax,

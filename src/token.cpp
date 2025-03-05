@@ -3,7 +3,7 @@
 #include <array>
 #include <string>
 
-enum toktype {
+enum class toktype {
     keyword,
     left_square,
     right_square,
