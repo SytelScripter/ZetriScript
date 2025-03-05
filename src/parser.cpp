@@ -112,7 +112,7 @@ class ParseResult {
     
     inline void checkError(ParseResult* result) {
         if (result->hasError()) {
-            error = (result->error);
+            error = std::move(result->error);
         }
         nodeResult = std::move(result->getValue());
     }
