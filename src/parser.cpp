@@ -5,7 +5,7 @@
 #include <variant>
 
 struct NodeNumber {
-    Position pos;
+    std::optional<Position> pos;
     Token_ numTok;
 };
 
@@ -22,23 +22,23 @@ struct NodePositionAssign {
 };
 
 struct NodeVarAccess {
-    Position pos;
+    std::optional<Position> pos;
     Token_ identName;
 };
 
 struct NodeVarAssign {
-    Position pos;
+    std::optional<Position> pos;
     NodeVarAccess ident;
     std::variant<NodeLine, NodeVarAccess, NodeAlloc> value;
 };
 
 struct NodeAlloc {
-    Position pos;
+    std::optional<Position> pos;
     NodeVarAccess allocated;
 };
 
 struct NodeLine {
-    Position pos;
+    std::optional<Position> pos;
     NodePositionAccess pos1;
     NodePositionAccess pos2;
     NodeNumber start;
@@ -47,17 +47,17 @@ struct NodeLine {
 };
 
 struct NodeGoto {
-    Position pos;
+    std::optional<Position> pos;
     NodePositionAccess nextPos;
 };
 
 struct NodeSegment {
-    Position pos;
+    std::optional<Position> pos;
     std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeVarAccess, NodeNumber, NodeGoto>> content;
 };
 
 struct NodeExec {
-    Position pos;
+    std::optional<Position> pos;
     NodeVarAccess identName;
 };
 
