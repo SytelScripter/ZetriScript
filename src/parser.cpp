@@ -106,6 +106,11 @@ class ParseResult {
     }
 
     template<typename T>
+    inline void setNode(T node) {
+        nodeResult = node;
+    }
+
+    template<typename T>
     inline T getKnownNode() {
         return std::get<T>(nodeResult);
     }
@@ -576,7 +581,7 @@ class Parser {
         }
         
         NodeProg nodeProgInstance = {.startingPosition = std::move(startingPosition), .code = std::move(code)};
-        parse_result.nodeResult = std::move(nodeProgInstance);
+        parse_result.setNode(std::move(nodeProgInstance));
         return parse_result;
     }
 
