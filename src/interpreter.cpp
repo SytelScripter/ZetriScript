@@ -1,5 +1,6 @@
 #include "parser.cpp"
 #include <string>
+#include <unordered_map>
 
 using finalOutput = std::variant<int, float>;
 
@@ -19,7 +20,7 @@ class SymbolTable {
         }
         return variables[ident];
     }
-}
+};
 
 class Interpreter {
     private:
@@ -171,4 +172,4 @@ class Interpreter {
         }
         visitSegment(program.code[i]);
     }
-}
+};

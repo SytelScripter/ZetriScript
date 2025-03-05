@@ -42,4 +42,4 @@ class Error {
         }
         return false;
     }
-}
+};

@@ -34,4 +34,4 @@ class Token {
     std::string value;
 
     Token(toktype type_, std::string value_) : type(type_), value(value_) {}
-}
+};

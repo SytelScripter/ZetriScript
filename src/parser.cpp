@@ -116,7 +116,7 @@ class ParseResult {
         }
         Node = std::move(result->getValue());
     }
-}
+};
 
 class Parser {
     private:
@@ -581,4 +581,4 @@ class Parser {
         return parse_result;
     }
 
-}
+};
