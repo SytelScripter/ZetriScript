@@ -411,7 +411,9 @@ class Parser {
             return parse_result;
         }
 
-        NodeNumber posX = parseNumber(pos);
+        ParseResult result_x = parseNumber(pos);
+        if (result_x.hasError()) return result_x;
+        NodeNumber posX = result_x.getValue();
         advance();
 
         temp = checkSyntaxError(toktype::colon, "':'");
@@ -420,7 +422,9 @@ class Parser {
             return parse_result;
         }
 
-        NodeNumber posY = parseNumber(pos);
+        ParseResult result_y = parseNumber(pos);
+        if (result_y.hasError()) return result_y;
+        NodeNumber posY = result_y.getValue();
         advance();
         
         temp = checkSyntaxError(toktype::colon, "':'");
@@ -429,7 +433,9 @@ class Parser {
             return parse_result;
         }
 
-        NodeNumber posZ = parseNumber(pos);
+        ParseResult result_z = parseNumber(pos);
+        if (result_z.hasError()) return result_z;
+        NodeNumber posZ = result_z.getValue();
         advance();
 
         temp = checkSyntaxError(toktype::right_square, "']'");
