@@ -575,9 +575,7 @@ class Parser {
             }
         }
         
-        NodeProg nodeProgInstance;
-        nodeProgInstance.startingPosition = std::move(startingPosition);
-        nodeProgInstance.code = std::move(code);
+        NodeProg nodeProgInstance = {.startingPosition = std::move(startingPosition), .code = std::move(code)};
         parse_result.nodeResult = std::move(nodeProgInstance);
         return parse_result;
     }
