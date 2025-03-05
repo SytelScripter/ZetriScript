@@ -187,7 +187,7 @@ class Parser {
         return false;
     }
 
-    inline std::optional<Error> checkSyntaxError(toktype tokenType, std::string msg) {
+    inline std::optional<Error> checkSyntaxError(std::variant<Position, specialpos> pos, toktype tokenType, std::string msg) {
         if (currentToken.type != tokenType) {
             Error error = Error(pos, errortype::syntax, std::string("EXPECTED ") + msg);
             return error;
@@ -203,7 +203,7 @@ class Parser {
 
     ParseResult parseVarAssign(std::variant<Position, specialpos> pos) {
         ParseResult parse_result = ParseResult();
-        std::optional<Error> temp = checkSyntaxError(toktype::name, "IDENTIFIER");
+        std::optional<Error> temp = checkSyntaxError(pos, toktype::name, "IDENTIFIER");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -213,7 +213,7 @@ class Parser {
         identifier.identName = currentToken;
         advance();
 
-        temp = checkSyntaxError(toktype::equals, "'='");
+        temp = checkSyntaxError(pos, toktype::equals, "'='");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -262,7 +262,7 @@ class Parser {
             return parse_result;
         }
         advance();
-        temp = checkSyntaxError(toktype::left_paren, "'('");
+        temp = checkSyntaxError(pos, toktype::left_paren, "'('");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -273,7 +273,7 @@ class Parser {
         pos1 = std::move(temp_result.getValue());
         advance();
 
-        temp = checkSyntaxError(toktype::comma, "','");
+        temp = checkSyntaxError(pos, toktype::comma, "','");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -284,7 +284,7 @@ class Parser {
         pos2 = std::move(temp_result1.getValue());
         advance();
 
-        temp = checkSyntaxError(toktype::comma, "','");
+        temp = checkSyntaxError(pos, toktype::comma, "','");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -304,13 +304,13 @@ class Parser {
         if (temp_result4.hasError()) return temp_result4;
         step = temp_result4.getValue();
 
-        temp = checkSyntaxError(toktype::right_paren, "')'");
+        temp = checkSyntaxError(pos, toktype::right_paren, "')'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
         }
 
-        temp = checkSyntaxError(toktype::semicolon, "';'");
+        temp = checkSyntaxError(pos, toktype::semicolon, "';'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -339,7 +339,7 @@ class Parser {
         ident.identName = currentToken;
         advance();
 
-        temp = checkSyntaxError(toktype::exc_mark, "'!'");
+        temp = checkSyntaxError(pos, toktype::exc_mark, "'!'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -361,7 +361,7 @@ class Parser {
         }
         advance();
 
-        temp = checkSyntaxError(toktype::left_paren, "'('");
+        temp = checkSyntaxError(pos, toktype::left_paren, "'('");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -374,13 +374,13 @@ class Parser {
         NodeVarAccess allocated(std::get<Position>(pos), currentToken);
         advance();
 
-        temp = checkSyntaxError(toktype::right_paren, "')'");
+        temp = checkSyntaxError(pos, toktype::right_paren, "')'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
         }
 
-        temp = checkSyntaxError(toktype::semicolon, "';'");
+        temp = checkSyntaxError(pos, toktype::semicolon, "';'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -396,7 +396,7 @@ class Parser {
         std::optional<Error> temp;
         ParseResult parse_result = ParseResult();
 
-        temp = checkSyntaxError(toktype::left_square, "'['");
+        temp = checkSyntaxError(pos, toktype::left_square, "'['");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -407,7 +407,7 @@ class Parser {
         NodeNumber posX = result_x.getValue();
         advance();
 
-        temp = checkSyntaxError(toktype::colon, "':'");
+        temp = checkSyntaxError(pos, toktype::colon, "':'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -418,7 +418,7 @@ class Parser {
         NodeNumber posY = result_y.getValue();
         advance();
         
-        temp = checkSyntaxError(toktype::colon, "':'");
+        temp = checkSyntaxError(pos, toktype::colon, "':'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -429,7 +429,7 @@ class Parser {
         NodeNumber posZ = result_z.getValue();
         advance();
 
-        temp = checkSyntaxError(toktype::right_square, "']'");
+        temp = checkSyntaxError(pos, toktype::right_square, "']'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -448,7 +448,7 @@ class Parser {
         std::optional<Error> temp;
         ParseResult parse_result = ParseResult();
 
-        temp = checkSyntaxError(toktype::left_square, "'['");
+        temp = checkSyntaxError(pos, toktype::left_square, "'['");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -459,7 +459,7 @@ class Parser {
         NodeNumber posX = result_x.getValue();
         advance();
 
-        temp = checkSyntaxError(toktype::colon, "':'");
+        temp = checkSyntaxError(pos, toktype::colon, "':'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -470,7 +470,7 @@ class Parser {
         NodeNumber posY = result_y.getValue();
         advance();
         
-        temp = checkSyntaxError(toktype::colon, "':'");
+        temp = checkSyntaxError(pos, toktype::colon, "':'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -481,13 +481,13 @@ class Parser {
         NodeNumber posZ = result_z.getValue();
         advance();
 
-        temp = checkSyntaxError(toktype::right_square, "']'");
+        temp = checkSyntaxError(pos, toktype::right_square, "']'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
         }
 
-        temp = checkSyntaxError(toktype::colon, "':'");
+        temp = checkSyntaxError(pos, toktype::colon, "':'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -516,7 +516,7 @@ class Parser {
         advance();
         NodePositionAccess nextPos = pos_result.getKnownNode<NodePositionAccess>();
 
-        temp = checkSyntaxError(toktype::exc_mark, "'!'");
+        temp = checkSyntaxError(pos, toktype::exc_mark, "'!'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
@@ -567,7 +567,7 @@ class Parser {
                 if (content.hasError()) return content;
             }
 
-            temp = checkSyntaxError(toktype::semicolon, "';'");
+            temp = checkSyntaxError(pos, toktype::semicolon, "';'");
             if (temp.has_value()) {
                 parse_result.setError(temp.value());
                 return parse_result;
@@ -595,7 +595,7 @@ class Parser {
             return parse_result;
         }
         advance();
-        temp = checkSyntaxError(toktype::exc_mark, "ENTRY CALL FOR EXECUTION '!'");
+        temp = checkSyntaxError(pos, toktype::exc_mark, "ENTRY CALL FOR EXECUTION '!'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
