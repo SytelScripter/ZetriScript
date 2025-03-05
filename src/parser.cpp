@@ -7,6 +7,8 @@
 struct NodeNumber {
     Position pos;
     Token_ numTok;
+
+    NodeNumber() {}
 };
 
 struct NodePositionAccess {
