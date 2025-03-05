@@ -21,7 +21,7 @@ enum toktype {
     dot
 };
 
-std::vector<std::string> keywords_list = {
+std::array<std::string, 5> keywords_list = {
     "ZetriScript",
     "LINE",
     "allocSpace",
@@ -29,10 +29,11 @@ std::vector<std::string> keywords_list = {
     "goto"
 };
 
-class Token {
+class Token_ {
     public:
     toktype type;
     std::string value;
 
-    Token(toktype type_, std::string value_) : type(type_), value(value_) {}
+    Token_(toktype type_) : type(type_) {}
+    Token_(toktype type_, std::string value_) : type(type_), value(value_) {}
 };
