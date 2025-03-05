@@ -155,6 +155,10 @@ class ParseResult {
         nodeResult = node;
     }
 
+    inline anynode getNode() {
+        return nodeResult;
+    }
+
     template<typename T>
     inline T getKnownNode() {
         return std::get<T>(nodeResult);
@@ -226,7 +230,7 @@ class Parser {
             value_result = parseLine(position_code);
             if (value_result.hasError()) return value_result;
         }
-        value = value_result.getValue();
+        value = value_result.getKnownNode<>();
 
         NodeVarAssign result;
         result.pos = std::get<Position>(pos);
