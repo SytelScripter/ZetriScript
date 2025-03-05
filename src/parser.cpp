@@ -393,9 +393,7 @@ class Parser {
             return parse_result;
         }
 
-        NodeAlloc result;
-        result.pos = pos;
-        result.allocated = std::move(allocated);
+        NodeAlloc result(pos, std::move(allocated));
         
         parse_result.setNode(std::move(result));
         return parse_result;
