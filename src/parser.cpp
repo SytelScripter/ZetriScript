@@ -46,7 +46,7 @@ class NodeVarAssign {
     public:
     Position pos;
     NodeVarAccess ident;
-    std::variant<NodeLine, NodeVarAccess, NodeAlloc> value;
+    std::variant<NodeLine, NodeVarAccess, NodeAlloc, NodeGoto> value;
 
     NodeVarAssign() {}
     NodeVarAssign(Position pos_, NodeVarAccess ident_, std::variant<NodeLine, NodeVarAccess, NodeAlloc> value_) : pos(pos_), ident(ident_), value(value_) {}
