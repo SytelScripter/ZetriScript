@@ -119,7 +119,7 @@ class ParseResult {
 };
 
 class Parser {
-    private:
+    public:
     int idx = -1;
     Token_ currentToken;
     std::vector<Token_> tokens;
@@ -150,7 +150,7 @@ class Parser {
         return std::nullopt;
     }
 
-    public:
+    
     Parser(std::vector<Token_> tokens_) : tokens(tokens_) {
         advance();
     }
