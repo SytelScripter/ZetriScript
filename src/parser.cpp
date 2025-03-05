@@ -79,7 +79,7 @@ class ParseResult {
         Node = node;
     }
 
-    bool hasError() {
+    inline bool hasError() {
         return !error.empty();
     }
 
@@ -106,7 +106,7 @@ class ParseResult {
     }
 
     template<typename T>
-    T getKnownNode() {
+    inline T getKnownNode() {
         return std::get<T>(Node);
     }
     
@@ -558,8 +558,9 @@ class Parser {
         }
 
         std::variant<Position, specialpos> pos_advance = specialpos::POS_DECL;
-        parse_result.checkError(&parsePos(pos_advance));
+        parse_result.checkError(&parseAccessPos(pos_advance));
         if (parse_result.hasError()) return parse_result;
+        NodePositionAccess startingPosition = parse_result.getKnownNode<NodePositionAccess>();
 
         std::vector<NodeSegment> code;
         while (!isTok(toktype::keyword, "ZetriScript")) {
@@ -577,7 +578,7 @@ class Parser {
         NodeProg result;
         result.startingPosition = std::move(startingPosition);
         result.code = std::move(code);
-        parse_result.setNode(std::move(result));
+        parse_result.Node = std::move(result);
         return parse_result;
     }
 
