@@ -466,8 +466,7 @@ class Parser {
             return parse_result;
         }
         advance();
-        ParseResult pos_result = ParseResult();
-        pos_result.checkError(parseAccessPos(pos));
+        ParseResult pos_result = parseAccessPos(pos);
         if (pos_result.hasError()) return pos_result;
         advance();
         NodePositionAccess nextPos = pos_result.getKnownNode<NodePositionAccess>();
