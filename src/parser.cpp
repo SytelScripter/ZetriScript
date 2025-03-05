@@ -76,7 +76,7 @@ class ParseResult {
 
     template<typename T>
     ParseResult(T node) {
-        NodeResult = node;
+        nodeResult = node;
     }
 
     inline bool hasError() {
