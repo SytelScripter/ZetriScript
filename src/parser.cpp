@@ -65,18 +65,18 @@ struct NodeProg {
     std::vector<NodeSegment> code;
 };
 
-// using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>;
+using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>;
 
 class ParseResult {
     public:
-    std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>; nodeResult;
+    anynode nodeResult;
     Error error;
 
     ParseResult() {}
 
     template<typename T>
     ParseResult(T node) {
-        nodeResult = node;
+        NodeResult = node;
     }
 
     inline bool hasError() {
@@ -84,21 +84,21 @@ class ParseResult {
     }
 
     inline auto getValue() {
-        if (std::holds_alternative<NodeProg>(nodeResult))             return std::get<NodeProg>(nodeResult);
-        if (std::holds_alternative<NodeSegment>(nodeResult))          return std::get<NodeSegment>(nodeResult);
-        if (std::holds_alternative<NodeExec>(nodeResult))             return std::get<NodeExec>(nodeResult);
-        if (std::holds_alternative<NodeLine>(nodeResult))             return std::get<NodeLine>(nodeResult);
-        if (std::holds_alternative<NodeAlloc>(nodeResult))            return std::get<NodeAlloc>(nodeResult);
-        if (std::holds_alternative<NodeVarAssign>(nodeResult))        return std::get<NodeVarAssign>(nodeResult);
-        if (std::holds_alternative<NodeVarAccess>(nodeResult))       return std::get<NodeVarAccess>(nodeResult);
-        if (std::holds_alternative<NodePositionAsign>(nodeResult))    return std::get<NodePositionAsign>(nodeResult);
-        if (std::holds_alternative<NodePositionAccess>(nodeResult))   return std::get<NodePositionAccess>(nodeResult);
-        if (std::holds_alternative<NodeNumber>(nodeResult))           return std::get<NodeNumber>(nodeResult);
-        if (std::holds_alternative<NodeGoto>(nodeResult))             return std::get<NodeGoto>(nodeResult);
+        if (std::holds_alternative<NodeProg>(NodeResult))             return std::get<NodeProg>(NodeResult);
+        if (std::holds_alternative<NodeSegment>(NodeResult))          return std::get<NodeSegment>(NodeResult);
+        if (std::holds_alternative<NodeExec>(NodeResult))             return std::get<NodeExec>(NodeResult);
+        if (std::holds_alternative<NodeLine>(NodeResult))             return std::get<NodeLine>(NodeResult);
+        if (std::holds_alternative<NodeAlloc>(NodeResult))            return std::get<NodeAlloc>(NodeResult);
+        if (std::holds_alternative<NodeVarAssign>(NodeResult))        return std::get<NodeVarAssign>(NodeResult);
+        if (std::holds_alternative<NodeVarAccess>(NodeResult))       return std::get<NodeVarAccess>(NodeResult);
+        if (std::holds_alternative<NodePositionAsign>(NodeResult))    return std::get<NodePositionAsign>(NodeResult);
+        if (std::holds_alternative<NodePositionAccess>(NodeResult))   return std::get<NodePositionAccess>(NodeResult);
+        if (std::holds_alternative<NodeNumber>(NodeResult))           return std::get<NodeNumber>(NodeResult);
+        if (std::holds_alternative<NodeGoto>(NodeResult))             return std::get<NodeGoto>(NodeResult);
     }
 
     inline void setError(Error error_) {
-        error = error_;
+        error = std::move(error_);
     }
 
     inline void setErrorDirectly(std::variant<Position, specialpos> pos, errortype errorType, std::string description) {
@@ -107,14 +107,14 @@ class ParseResult {
 
     template<typename T>
     inline T getKnownNode() {
-        return std::get<T>(nodeResult);
+        return std::get<T>(NodeResult);
     }
     
     inline void checkError(*ParseResult result) {
         if (result->hasError()) {
             error = (result->error);
         }
-        nodeResult = std::move(result->getValue());
+        NodeResult = std::move(result->getValue());
     }
 };
 
@@ -188,10 +188,10 @@ class Parser {
 
         NodeVarAssign result;
         result.pos = pos;
-        result.ident = identifier;
-        result.value = value;
+        result.ident = std::move(identifier);
+        result.value = std::move(value);
 
-        parse_result.nodeResult = result;
+        parse_result.NodeResult = std::move(result);
         return parse_result;
     }
 
@@ -208,7 +208,7 @@ class Parser {
         result.pos = pos;
         result.numTok = std::move(numTok);
         
-        parse_result.nodeResult = result;
+        parse_result.NodeResult = std::move(result);
         return parse_result;
     }
 
@@ -284,10 +284,10 @@ class Parser {
         result.pos = pos;
         result.pos1 = std::move(pos1);
         result.pos2 = std::move(pos2);
-        result.start = start;
-        result.end = end;
-        result.step = step;
-        parse_result.nodeResult = result;
+        result.start = std::move(start);
+        result.end = std::move(end);
+        result.step = std::move(step);
+        parse_result.NodeResult = std::move(result);
         return parse_result;
     }
 
@@ -311,7 +311,7 @@ class Parser {
 
         NodeExec result;
         result.identName = ident;
-        parse_result.nodeResult = result;
+        parse_result.NodeResult = std::move(result);
         return parse_result;
     }
 
@@ -353,9 +353,9 @@ class Parser {
 
         NodeAlloc result;
         result.pos = pos;
-        result.allocated = allocated;
+        result.allocated = std::move(allocated);
         
-        parse_result.nodeResult = result;
+        parse_result.NodeResult = std::move(result);
         return parse_result;
     }
 
@@ -401,7 +401,7 @@ class Parser {
         result.y = std::move(posY);
         result.z = std::move(posZ);
 
-        parse_result.nodeResult = result;
+        parse_result.NodeResult = std::move(result);
         return parse_result;
     }
     
@@ -453,7 +453,7 @@ class Parser {
         result.y = std::move(posY);
         result.z = std::move(posZ);
 
-        parse_result.setNode(result);
+        parse_result.setNode(std::move(result));
         return parse_result;
     }
 
@@ -481,7 +481,7 @@ class Parser {
         result.pos = pos;
         result.nextPos = std::move(nextPos);
 
-        parse_result.nodeResult = result;
+        parse_result.NodeResult = std::move(result);
         return parse_result;
     }
 
@@ -537,14 +537,13 @@ class Parser {
             result.content.push_back(std::move(content.getValue()));
         }
 
-        parse_result.nodeResult = result;
+        parse_result.NodeResult = std::move(result);
         return parse_result;
     }
 
     ParseResult parse(std::variant<Position, specialpos> pos) {
-        NodeProg result;
         std::optional<Error> temp;
-        ParseResult parse_result = ParseResult<NodeProg>(result);
+        ParseResult parse_result = ParseResult();
         
 
         if (!isTok(toktype::keyword, "ZetriScript")) {
@@ -576,9 +575,10 @@ class Parser {
             }
         }
         
+        NodeProg result;
         result.startingPosition = std::move(startingPosition);
-        result.code = code;
-        parse_result.nodeResult = result;
+        result.code = std::move(code);
+        parse_result.NodeResult = std::move(result);
         return parse_result;
     }
 
