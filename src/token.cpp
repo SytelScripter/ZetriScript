@@ -4,6 +4,7 @@
 #include <string>
 
 enum class toktype {
+    none = -1,
     keyword,
     left_square,
     right_square,
@@ -36,6 +37,7 @@ class Token_ {
     toktype type;
     std::string value;
 
+    Token_() : type(toktype::none), value("") {}
     Token_(toktype type_) : type(type_), value("") {}
     Token_(toktype type_, std::string value_) : type(type_), value(value_) {}
 };
