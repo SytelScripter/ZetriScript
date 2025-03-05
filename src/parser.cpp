@@ -110,7 +110,7 @@ class ParseResult {
         return std::get<T>(nodeResult);
     }
     
-    inline void checkError(*ParseResult result) {
+    inline void checkError(ParseResult* result) {
         if (result->hasError()) {
             error = (result->error);
         }
