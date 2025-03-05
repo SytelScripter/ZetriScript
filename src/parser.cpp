@@ -189,7 +189,7 @@ class Parser {
 
     inline std::optional<Error> checkSyntaxError(std::variant<Position, specialpos> pos, toktype tokenType, std::string msg) {
         if (currentToken.type != tokenType) {
-            Error error = Error(pos, errortype::syntax, std::string("EXPECTED ") + msg);
+            Error error = Error(pos, errortype::syntax, std::string("EXPECTED ") + std::string(msg));
             return error;
         }
         advance();
