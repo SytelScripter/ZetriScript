@@ -30,7 +30,7 @@ class Interpreter {
     int instruction_pos = 0;
 
     inline bool comparePos(Position pos1, Position pos2) {
-        if (pos1.posX == pos1.posY && pos1.posY == pos2.posY && pos1.posZ == pos2.posZ) {
+        if (pos1.x == pos1.x && pos1.y == pos2.y && pos1.z == pos2.z) {
             return true;
         }
         return false;
