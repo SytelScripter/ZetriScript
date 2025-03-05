@@ -475,6 +475,7 @@ class Parser {
         pos_result.checkError(parseAccessPos(pos));
         if (pos_result.hasError()) return pos_result;
         advance();
+        NodePositionAccess nextPos = pos_result.getKnownNode<NodePositionAccess>();
 
         temp = checkSyntaxError(toktype::exc_mark, "'!'");
         if (temp.has_value()) {
