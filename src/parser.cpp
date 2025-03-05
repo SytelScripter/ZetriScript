@@ -196,7 +196,7 @@ class Parser {
         result.ident = std::move(identifier);
         result.value = std::move(value);
 
-        parse_result.nodeResult = std::move(result);
+        parse_result.setNode(std::move(result));
         return parse_result;
     }
 
@@ -213,7 +213,7 @@ class Parser {
         result.pos = pos;
         result.numTok = std::move(numTok);
         
-        parse_result.nodeResult = std::move(result);
+        parse_result.setNode(std::move(result));
         return parse_result;
     }
 
@@ -292,7 +292,7 @@ class Parser {
         result.start = std::move(start);
         result.end = std::move(end);
         result.step = std::move(step);
-        parse_result.nodeResult = std::move(result);
+        parse_result.setNode(std::move(result));
         return parse_result;
     }
 
@@ -316,7 +316,7 @@ class Parser {
 
         NodeExec result;
         result.identName = ident;
-        parse_result.nodeResult = std::move(result);
+        parse_result.setNode(std::move(result));
         return parse_result;
     }
 
@@ -360,7 +360,7 @@ class Parser {
         result.pos = pos;
         result.allocated = std::move(allocated);
         
-        parse_result.nodeResult = std::move(result);
+        parse_result.setNode(std::move(result));
         return parse_result;
     }
 
@@ -406,7 +406,7 @@ class Parser {
         result.y = std::move(posY);
         result.z = std::move(posZ);
 
-        parse_result.nodeResult = std::move(result);
+        parse_result.setNode(std::move(result));
         return parse_result;
     }
     
@@ -486,7 +486,7 @@ class Parser {
         result.pos = pos;
         result.nextPos = std::move(nextPos);
 
-        parse_result.nodeResult = std::move(result);
+        parse_result.setNode(std::move(result));
         return parse_result;
     }
 
@@ -542,7 +542,7 @@ class Parser {
             result.content.push_back(std::move(content.getValue()));
         }
 
-        parse_result.nodeResult = std::move(result);
+        parse_result.setNode(std::move(result));
         return parse_result;
     }
 
