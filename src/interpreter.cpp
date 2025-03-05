@@ -106,9 +106,9 @@ class Interpreter {
     }
 
     possibleReturnValues visitVarAccess(NodeVarAccess node) {
-        possibleReturnValues result = globals.getValue();
+        possibleReturnValues result = globals.getValue(node.identName);
         if (!result.has_value()) {
-            std::cout << "ERROR: UNDEFINED VARIABLE" << ident.value << "\n";
+            std::cout << "ERROR: UNDEFINED VARIABLE" << node.identName.value << "\n";
             return std::nullopt;
         }
         return result;
