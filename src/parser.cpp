@@ -65,11 +65,11 @@ struct NodeProg {
     std::vector<NodeSegment> code;
 };
 
-using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>;
+// using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>;
 
 class ParseResult {
     public:
-    anynode nodeResult;
+    std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>; nodeResult;
     Error error;
 
     ParseResult() {}
