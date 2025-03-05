@@ -5,7 +5,7 @@
 #include <variant>
 
 struct NodeNumber {
-    std::optional<Position> pos;
+    Position pos;
     Token_ numTok;
 };
 
