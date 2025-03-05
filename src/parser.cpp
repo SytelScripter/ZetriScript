@@ -542,8 +542,9 @@ class Parser {
     }
 
     ParseResult parse(std::variant<Position, specialpos> pos) {
+        NodeProg result;
         std::optional<Error> temp;
-        ParseResult parse_result = ParseResult();
+        ParseResult parse_result = ParseResult<NodeProg>(result);
         
 
         if (!isTok(toktype::keyword, "ZetriScript")) {
@@ -575,7 +576,6 @@ class Parser {
             }
         }
         
-        NodeProg result;
         result.startingPosition = std::move(startingPosition);
         result.code = code;
         parse_result.nodeResult = result;
