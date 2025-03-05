@@ -9,6 +9,7 @@ class NodeNumber {
     Position pos;
     Token_ numTok;
 
+    NodeNumber() {}
     NodeNumber(Position pos_, Token_ numTok_) : pos(pos_), numTok(numTok_) {}
 };
 
@@ -18,6 +19,7 @@ class NodePositionAccess {
     NodeNumber y;
     NodeNumber z;
 
+    NodePositionAccess() {}
     NodePositionAccess(NodeNumber x_, NodeNumber y_, NodeNumber z_) : x(x_), y(y_), z(z_) {}
 };
 
@@ -27,7 +29,8 @@ class NodePositionAssign {
     NodeNumber y;
     NodeNumber z;
 
-    NodePositionAccess(NodeNumber x_, NodeNumber y_, NodeNumber z_) : x(x_), y(y_), z(z_) {}
+    NodePositionAssign() {}
+    NodePositionAssign(NodeNumber x_, NodeNumber y_, NodeNumber z_) : x(x_), y(y_), z(z_) {}
 };
 
 class NodeVarAccess {
@@ -35,6 +38,7 @@ class NodeVarAccess {
     Position pos
     Token_ identName;
 
+    NodeVarAccess() {}
     NodeVarAccess(Position pos_, Token_ identName_) : pos(pos_), identName(identName_) {}
 };
 
@@ -44,6 +48,7 @@ class NodeVarAssign {
     NodeVarAccess ident;
     std::variant<NodeLine, NodeVarAccess, NodeAlloc> value;
 
+    NodeVarAssign() {}
     NodeVarAssign(Position pos_, NodeVarAccess ident_, std::variant<NodeLine, NodeVarAccess, NodeAlloc> value_) : pos(pos_), ident(ident_), value(value_) {}
 };
 
@@ -51,6 +56,8 @@ class NodeAlloc {
     public:
     Position pos
     NodeVarAccess allocated;
+
+    NodeGoto() {}
     NodeAlloc(Position pos_, NodeVarAccess allocated_) : pos(pos_), allocated(allocated_) {}
 };
 
@@ -63,6 +70,7 @@ class NodeLine {
     NodeNumber end;
     NodeNumber step;
 
+    NodeLine() {}
     NodeLine(Position pos_, NodePositionAccess pos1_, NodePositionAccess pos2_, NodeNumber start_, NodeNumber end_, NodeNumber step_) : pos(pos_), pos1(pos1_), pos2(pos2_), start(start_), end(end_), step(step_) {}
 };
 
@@ -71,6 +79,7 @@ class NodeGoto {
     Position pos
     NodePositionAccess nextPos;
 
+    NodeGoto() {}
     NodeGoto(Position pos_, NodePositionAccess nextPos_) : pos(pos_), nextPos(nextPos_) {}
 };
 
@@ -79,6 +88,7 @@ class NodeSegment {
     Position pos
     std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeVarAccess, NodeNumber, NodeGoto>> content;
 
+    NodeSegment() {}
     NodeSegment(Position pos_, std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeVarAccess, NodeNumber, NodeGoto>> content_) : pos(pos_), content(content_) {}
 };
 
@@ -87,6 +97,7 @@ class NodeExec {
     Position pos
     NodeVarAccess identName;
 
+    NodeExec() {}
     NodeExec(Position pos_, NodeVarAccess identName_) : pos(pos_), identName(identName_) {}
 };
 
@@ -95,6 +106,7 @@ class NodeProg {
     NodePositionAccess startingPosition;
     std::vector<NodeSegment> code;
 
+    NodeProg() {}
     NodeProg(NodePositionAccess startingPosition_, std::vector<NodeSegment> code_) : startingPosition(startingPosition_), code(code_) {}
 };
 
