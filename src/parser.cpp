@@ -231,7 +231,7 @@ class Parser {
         NodeVarAssign result;
         result.pos = std::get<Position>(pos);
         result.ident = std::move(identifier);
-        result.value = std::move(value);
+        result.value = value;
 
         parse_result.setNode(std::move(result));
         return parse_result;
