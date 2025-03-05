@@ -35,7 +35,7 @@ class NodePositionAssign {
 
 class NodeVarAccess {
     public:
-    Position pos
+    Position pos;
     Token_ identName;
 
     NodeVarAccess() {}
@@ -44,7 +44,7 @@ class NodeVarAccess {
 
 class NodeVarAssign {
     public:
-    Position pos
+    Position pos;
     NodeVarAccess ident;
     std::variant<NodeLine, NodeVarAccess, NodeAlloc> value;
 
@@ -54,7 +54,7 @@ class NodeVarAssign {
 
 class NodeAlloc {
     public:
-    Position pos
+    Position pos;
     NodeVarAccess allocated;
 
     NodeGoto() {}
@@ -63,7 +63,7 @@ class NodeAlloc {
 
 class NodeLine {
     public:
-    Position pos
+    Position pos;
     NodePositionAccess pos1;
     NodePositionAccess pos2;
     NodeNumber start;
@@ -76,7 +76,7 @@ class NodeLine {
 
 class NodeGoto {
     public:
-    Position pos
+    Position pos;
     NodePositionAccess nextPos;
 
     NodeGoto() {}
@@ -85,7 +85,7 @@ class NodeGoto {
 
 class NodeSegment {
     public:
-    Position pos
+    Position pos;
     std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeVarAccess, NodeNumber, NodeGoto>> content;
 
     NodeSegment() {}
@@ -94,7 +94,7 @@ class NodeSegment {
 
 class NodeExec {
     public:
-    Position pos
+    Position pos;
     NodeVarAccess identName;
 
     NodeExec() {}
