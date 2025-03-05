@@ -110,7 +110,7 @@ class NodeProg {
     NodeProg(NodePositionAccess startingPosition_, std::vector<NodeSegment> code_) : startingPosition(startingPosition_), code(code_) {}
 };
 
-using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>;
+using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAssign, NodePositionAccess, NodeNumber, NodeGoto>;
 
 class ParseResult {
     public:
