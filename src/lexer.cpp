@@ -64,7 +64,7 @@ public:
             text += currentChar;
             advance();
         }
-        if (std::find(keywords_list.begin(), keywords_list.end(), text) > 0) {
+        if (std::find(keywords_list.begin(), keywords_list.end(), text) != keywords_list.end()) {
             Token_ result = Token_(toktype::keyword, text);
             return result;
         }
