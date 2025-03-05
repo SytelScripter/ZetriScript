@@ -563,7 +563,7 @@ class Parser {
         }
 
         std::variant<Position, specialpos> pos_advance = specialpos::POS_DECL;
-        parse_result.checkError(&parseAccessPos(pos_advance));
+        ParseResult accessResult = parseAccessPos(pos_advance);
         if (parse_result.hasError()) return parse_result;
         NodePositionAccess startingPosition = parse_result.getKnownNode<NodePositionAccess>();
 
