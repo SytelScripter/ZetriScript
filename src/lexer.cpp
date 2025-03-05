@@ -83,9 +83,8 @@ public:
             num_str += currentChar;
             advance();
         }
-        if (dot_count == 0) Token_ result = Token_(toktype::int_lit);
-        else result.type = toktype::float_lit;
-        result.value = num_str;
+        if (dot_count == 0) Token_ result = Token_(toktype::int_lit, num_str);
+        else Token_ result = Token_(toktype::float_lit, num_str);
         return result;
     }
 };
