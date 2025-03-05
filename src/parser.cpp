@@ -268,8 +268,7 @@ class Parser {
             parse_result.setError(temp.value());
             return parse_result;
         }
-        ParseResult temp_result = ParseResult();
-        temp_result.checkError(parseAccessPos(pos));
+        ParseResult temp_result = parseAccessPos(pos);
         if (temp_result.hasError()) return temp_result;
         NodePositionAccess pos1;
         pos1 = std::move(temp_result.getValue());
@@ -280,8 +279,7 @@ class Parser {
             parse_result.setError(temp.value());
             return parse_result;
         }
-        ParseResult temp_result1 = ParseResult();
-        temp_result1.checkError(parseAccessPos(pos));
+        ParseResult temp_result1 = parseAccessPos(pos);
         if (temp_result1.hasError()) return temp_result1;
         NodePositionAccess pos2;
         pos2 = std::move(temp_result1.getValue());
@@ -295,18 +293,15 @@ class Parser {
 
         NodeNumber start, end, step;
         
-        ParseResult temp_result2 = ParseResult();
-        temp_result2.checkError(parseNumber(pos));
+        ParseResult temp_result2 = parseNumber(pos);
         if (temp_result2.hasError()) return temp_result2;
         start = temp_result2.getValue();
 
-        ParseResult temp_result3 = ParseResult();
-        temp_result3.checkError(parseNumber(pos));
+        ParseResult temp_result3 = parseNumber(pos);
         if (temp_result3.hasError()) return temp_result3;
         end = temp_result3.getValue();
 
-        ParseResult temp_result4 = ParseResult();
-        temp_result4.checkError(parseNumber(pos));
+        ParseResult temp_result4 = parseNumber(pos);
         if (temp_result4.hasError()) return temp_result4;
         step = temp_result4.getValue();
 
