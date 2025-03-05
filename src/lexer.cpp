@@ -1,4 +1,5 @@
 #include "token.cpp"
+#include <algorithm>
 #include <vector>
 #include <cctype>
 
@@ -63,7 +64,7 @@ public:
             text += currentChar;
             advance();
         }
-        if (std::count(keywords_list.begin(), keywords_list.end(), text) > 0) {
+        if (std::find(keywords_list.begin(), keywords_list.end(), text) > 0) {
             Token_ result = Token_(toktype::keyword, text);
             return result;
         }
@@ -83,8 +84,11 @@ public:
             num_str += currentChar;
             advance();
         }
-        if (dot_count == 0) Token_ result = Token_(toktype::int_lit, num_str);
-        else Token_ result = Token_(toktype::float_lit, num_str);
+        if (dot_count == 0) {
+            Token_ result = Token_(toktype::int_lit, num_str);
+            return result;
+        }
+        Token_ result = Token_(toktype::float_lit, num_str);
         return result;
     }
 };
