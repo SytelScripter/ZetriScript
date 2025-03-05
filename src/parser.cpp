@@ -508,23 +508,23 @@ class Parser {
         while (currentToken.type != toktype::exc_mark) {
             ParseResult content = ParseResult();
             if (isTok(toktype::keyword, "allocSpace")) {
-                content.checkError(&parseAlloc(position_code));
+                content = parseAlloc(position_code);
                 if (content.hasError()) return content;
             }
             else if (look_forward(1).type == toktype::equals) {
-                content.checkError(&parseVarAssign(position_code));
+                content = parseVarAssign(position_code);
                 if (content.hasError()) return content;
             }
             else if (isTok(toktype::keyword, "LINE")) {
-                content.checkError(&parseLine(position_code));
+                content = parseLine(position_code);
                 if (content.hasError()) return content;
             }
             else if (look_forward(1).type == toktype::exc_mark) {
-                content.checkError(&parseExecution(position_code));
+                content = parseExecution(position_code);
                 if (content.hasError()) return content;
             }
             else if (isTok(toktype::keyword, "goto")) {
-                content.checkError(&parseGoto(position_code));
+                content = parseGoto(position_code);
                 if (content.hasError()) return content;
             }
 
