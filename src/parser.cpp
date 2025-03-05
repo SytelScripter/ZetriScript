@@ -573,7 +573,7 @@ class Parser {
             ParseResult segment_result = ParseResult();
             segment_result.checkError(&parseSegment(pos_advance));
             if (segment_result.hasError()) return segment_result;
-            code.push_back(std::move(segment_result.getKnownNode<NodeSegment>()));
+            code.push_back(segment_result.getKnownNode<NodeSegment>());
             if (idx >= tokens.size()) {
                 parse_result.setErrorDirectly(pos_advance, errortype::syntax, "'ZetriScript' KEYWORD AT THE END OF THE FILE");
                 return parse_result;
