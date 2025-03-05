@@ -20,49 +20,52 @@ struct NodePositionAssign {
     NodeNumber z;
 };
 
-struct NodeIdentifier {
+struct NodeVarAccess {
     Position pos;
     Token identName;
 };
 
 struct NodeVarAssign {
     Position pos;
-    NodeIdentifier ident;
-    std::variant<NodeLine, NodeIdentifier, NodeAlloc> value;
+    NodeVarAccess ident;
+    std::variant<NodeLine, NodeVarAccess, NodeAlloc> value;
 };
 
 struct NodeAlloc {
     Position pos;
-    NodeIdentifier allocated;
+    NodeVarAccess allocated;
 };
 
 struct NodeLine {
     Position pos;
-    NodePosition pos1;
-    NodePosition pos2;
+    NodePositionAccess pos1;
+    NodePositionAccess pos2;
+    NodeNumber start;
+    NodeNumber end;
+    NodeNumber step;
 };
 
 struct NodeGoto {
     Position pos;
-    NodePosition nextPos;
+    NodePositionAccess nextPos;
 };
 
 struct NodeSegment {
     Position pos;
-    std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeIdentifier, NodeNumber, NodeGoto>> content;
+    std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeVarAccess, NodeNumber, NodeGoto>> content;
 };
 
 struct NodeExec {
     Position pos;
-    NodeIdentifier identName;
+    NodeVarAccess identName;
 };
 
 struct NodeProg {
-    NodePosition startingPosition;
-    std::vector<NodeLine> code;
+    NodePositionAccess startingPosition;
+    std::vector<NodeSegment> code;
 };
 
-using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeIdentifier, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>;
+using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>;
 
 class ParseResult {
     public:
@@ -87,7 +90,7 @@ class ParseResult {
         if (std::holds_alternative<NodeLine>(Node))             return std::get<NodeLine>(Node);
         if (std::holds_alternative<NodeAlloc>(Node))            return std::get<NodeAlloc>(Node);
         if (std::holds_alternative<NodeVarAssign>(Node))        return std::get<NodeVarAssign>(Node);
-        if (std::holds_alternative<NodeIdentifier>(Node))       return std::get<NodeIdentifier>(Node);
+        if (std::holds_alternative<NodeVarAccess>(Node))       return std::get<NodeVarAccess>(Node);
         if (std::holds_alternative<NodePositionAsign>(Node))    return std::get<NodePositionAsign>(Node);
         if (std::holds_alternative<NodePositionAccess>(Node))   return std::get<NodePositionAccess>(Node);
         if (std::holds_alternative<NodeNumber>(Node))           return std::get<NodeNumber>(Node);
@@ -161,7 +164,7 @@ class Parser {
             return parse_result;
         }
 
-        NodeIdentifier identifier;
+        NodeVarAccess identifier;
         identifier.identName = currentToken;
         advance();
 
@@ -171,7 +174,7 @@ class Parser {
             return parse_result;
         }
 
-        std::variant<NodeLine, NodeIdentifier, NodeAlloc, NodeGoto> value;
+        std::variant<NodeLine, NodeVarAccess, NodeAlloc, NodeGoto> value;
         ParseResult value_result = ParseResult();
         if (isTok(toktype::keyword, "allocSpace")) {
             value_result.checkError(&parseAlloc(position_code));
@@ -223,8 +226,11 @@ class Parser {
             parse_result.setError(temp.value());
             return parse_result;
         }
-
-        NodePosition pos1(parsePos(pos));
+        ParseResult temp_result = ParseResult();
+        temp_result.checkError(parseAccessPos(pos));
+        if (temp_result.hasError()) return temp_result;
+        NodePositionAccess pos1;
+        pos1 = std::move(temp_result.getValue());
         advance();
 
         temp = checkSyntaxError(toktype::comma, "','");
@@ -232,16 +238,42 @@ class Parser {
             parse_result.setError(temp.value());
             return parse_result;
         }
-        ParseResult temp = parsePos(pos);
-        NodePosition pos2();
+        ParseResult temp_result1 = ParseResult();
+        temp_result1.checkError(parseAccessPos(pos));
+        if (temp_result1.hasError()) return temp_result1;
+        NodePositionAccess pos2;
+        pos2 = std::move(temp_result1.getValue());
         advance();
+
+        temp = checkSyntaxError(toktype::comma, "','");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
+        }
+
+        NodeNumber start, end, step;
         
+        ParseResult temp_result2 = ParseResult();
+        temp_result2.checkError(parseNumber(pos));
+        if (temp_result2.hasError()) return temp_result2;
+        start = temp_result2.getValue();
+
+        ParseResult temp_result3 = ParseResult();
+        temp_result3.checkError(parseNumber(pos));
+        if (temp_result3.hasError()) return temp_result3;
+        end = temp_result3.getValue();
+
+        ParseResult temp_result4 = ParseResult();
+        temp_result4.checkError(parseNumber(pos));
+        if (temp_result4.hasError()) return temp_result4;
+        step = temp_result4.getValue();
+
         temp = checkSyntaxError(toktype::right_paren, "')'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
             return parse_result;
         }
-                
+
         temp = checkSyntaxError(toktype::semicolon, "';'");
         if (temp.has_value()) {
             parse_result.setError(temp.value());
@@ -252,7 +284,10 @@ class Parser {
         result.pos = pos;
         result.pos1 = std::move(pos1);
         result.pos2 = std::move(pos2);
-        parse_result.setNode(std::move(result));
+        result.start = std::move(start);
+        result.end = std::move(end);
+        result.step = std::move(step);
+        parse_result.Node = std::move(result);
         return parse_result;
     }
 
@@ -264,7 +299,7 @@ class Parser {
             parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED IDENTIFIER BEFORE CALL");
             return parse_result;
         }
-        NodeIdentifier ident;
+        NodeVarAccess ident;
         ident.identName = currentToken;
         advance();
 
@@ -300,7 +335,7 @@ class Parser {
             parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED IDENTIFIER");
             return parse_result;
         }
-        NodeIdentifier allocated;
+        NodeVarAccess allocated;
         allocated.identName = currentToken;
         advance();
 
