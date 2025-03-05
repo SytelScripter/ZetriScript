@@ -4,68 +4,98 @@
 #include <optional>
 #include <variant>
 
-struct NodeNumber {
+class NodeNumber {
+    public:
     Position pos;
     Token_ numTok;
 
-    NodeNumber() {}
+    NodeNumber(Position pos_, Token_ numTok_) : pos(pos_), numTok(numTok_) {}
 };
 
-struct NodePositionAccess {
+class NodePositionAccess {
+    public:
     NodeNumber x;
     NodeNumber y;
     NodeNumber z;
+
+    NodePositionAccess(NodeNumber x_, NodeNumber y_, NodeNumber z_) : x(x_), y(y_), z(z_) {}
 };
 
-struct NodePositionAssign {
+class NodePositionAssign {
+    public:
     NodeNumber x;
     NodeNumber y;
     NodeNumber z;
+
+    NodePositionAccess(NodeNumber x_, NodeNumber y_, NodeNumber z_) : x(x_), y(y_), z(z_) {}
 };
 
-struct NodeVarAccess {
-    std::optional<Position> pos;
+class NodeVarAccess {
+    public:
+    Position pos
     Token_ identName;
+
+    NodeVarAccess(Position pos_, Token_ identName_) : pos(pos_), identName(identName_) {}
 };
 
-struct NodeVarAssign {
-    std::optional<Position> pos;
+class NodeVarAssign {
+    public:
+    Position pos
     NodeVarAccess ident;
     std::variant<NodeLine, NodeVarAccess, NodeAlloc> value;
+
+    NodeVarAssign(Position pos_, NodeVarAccess ident_, std::variant<NodeLine, NodeVarAccess, NodeAlloc> value_) : pos(pos_), ident(ident_), value(value_) {}
 };
 
-struct NodeAlloc {
-    std::optional<Position> pos;
+class NodeAlloc {
+    public:
+    Position pos
     NodeVarAccess allocated;
+    NodeAlloc(Position pos_, NodeVarAccess allocated_) : pos(pos_), allocated(allocated_) {}
 };
 
-struct NodeLine {
-    std::optional<Position> pos;
+class NodeLine {
+    public:
+    Position pos
     NodePositionAccess pos1;
     NodePositionAccess pos2;
     NodeNumber start;
     NodeNumber end;
     NodeNumber step;
+
+    NodeLine(Position pos_, NodePositionAccess pos1_, NodePositionAccess pos2_, NodeNumber start_, NodeNumber end_, NodeNumber step_) : pos(pos_), pos1(pos1_), pos2(pos2_), start(start_), end(end_), step(step_) {}
 };
 
-struct NodeGoto {
-    std::optional<Position> pos;
+class NodeGoto {
+    public:
+    Position pos
     NodePositionAccess nextPos;
+
+    NodeGoto(Position pos_, NodePositionAccess nextPos_) : pos(pos_), nextPos(nextPos_) {}
 };
 
-struct NodeSegment {
-    std::optional<Position> pos;
+class NodeSegment {
+    public:
+    Position pos
     std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeVarAccess, NodeNumber, NodeGoto>> content;
+
+    NodeSegment(Position pos_, std::vector<std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeVarAccess, NodeNumber, NodeGoto>> content_) : pos(pos_), content(content_) {}
 };
 
-struct NodeExec {
-    std::optional<Position> pos;
+class NodeExec {
+    public:
+    Position pos
     NodeVarAccess identName;
+
+    NodeExec(Position pos_, NodeVarAccess identName_) : pos(pos_), identName(identName_) {}
 };
 
-struct NodeProg {
+class NodeProg {
+    public:
     NodePositionAccess startingPosition;
     std::vector<NodeSegment> code;
+
+    NodeProg(NodePositionAccess startingPosition_, std::vector<NodeSegment> code_) : startingPosition(startingPosition_), code(code_) {}
 };
 
 using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeVarAccess, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>;
