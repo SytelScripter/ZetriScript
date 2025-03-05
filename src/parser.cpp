@@ -323,7 +323,7 @@ class Parser {
         }
 
         NodeLine result;
-        result.pos = pos;
+        result.pos = std::get<Position>(pos);
         result.pos1 = std::move(pos1);
         result.pos2 = std::move(pos2);
         result.start = std::move(start);
