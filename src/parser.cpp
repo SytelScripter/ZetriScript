@@ -1,6 +1,7 @@
 #include "lexer.cpp"
 #include "error.cpp"
 #include <memory>
+#include <optional>
 #include <variant>
 
 struct NodeNumber {
