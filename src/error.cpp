@@ -4,7 +4,7 @@ enum class errortype {
     none = -1,
     illegalChar,
     syntax,
-}
+};
 
 class Error {
     private:
