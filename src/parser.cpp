@@ -24,7 +24,7 @@ struct NodeIdentifier {
 
 struct NodeVarAssign {
     NodeIdentifier ident;
-    std::variant<NodeLine, NodeIdentifier> value;
+    std::variant<NodeLine, NodeIdentifier, NodeAlloc> value;
 };
 
 struct NodeAlloc {
@@ -38,12 +38,16 @@ struct NodeLine {
 
 struct NodeSegment {
     Position pos;
-    std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeIdentifier, NodeNumber> content;
+    std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeExec, NodeIdentifier, NodeNumber> content;
 };
 
+struct NodeExec {
+    Position pos;
+    NodeIdentifier identName;
+}
+
 struct NodeProg {
-    Token header;
-    std::string startingPosition;
+    NodePosition startingPosition;
     std::vector<NodeLine> code;
 };
 
@@ -72,6 +76,30 @@ class Parser {
     public:
     Parser(std::vector<Token> tokens_) : tokens(tokens_) {
         advance();
+    }
+
+    NodeVarAssign parseVarAssign(std::variant<Position, specialpos> pos) {
+        if (currentToken.type != toktype::name) {
+            Error error(pos, errortype::syntax, "EXPECTED IDENTIFIER");
+        }
+        NodeIdentifier identifier;
+        identifier.identName = currentToken;
+        advance();
+        if (currentToken.type != toktype::equals) {
+            Error error(pos, errortype::syntax, "EXPECTED '='");
+        }
+        advance();
+        std::variant<NodeLine, NodeIdentifier, NodeAlloc> value;
+        if (isTok(toktype::keyword, "allocSpace")) {
+            value = parseAlloc(position_code);
+        }
+        else if (isTok(toktype::keyword, "LINE")) {
+            value = parseLine(position_code);
+        }
+        NodeVarAssign result;
+        result.ident = identifier;
+        result.value = value;
+        return result;
     }
 
     NodeNumber parseNumber(std::variant<Position, specialpos> pos) {
@@ -113,6 +141,22 @@ class Parser {
         NodeLine result;
         result.pos1 = std::move(pos1);
         result.pos2 = std::move(pos2);
+        return result;
+    }
+
+    NodeExec parseExecution(std::variant<Position, specialpos> pos) {
+        if (currentToken.type != toktype::name) {
+            Error error(pos, errortype::syntax, "EXPECTED IDENTIFIER BEFORE CALL");
+        }
+        NodeIdentifier ident;
+        ident.identName = currentToken;
+        advance();
+        if (currentToken.type != toktype::exc_mark) {
+            Error error(pos, errotype::syntax, "EXPECTED '!'");
+        }
+        advance();
+        NodeExec result;
+        result.identName = ident;
         return result;
     }
 
@@ -193,6 +237,9 @@ class Parser {
         else if (isTok(toktype::keyword, "LINE")) {
             content = parseLine(position_code);
         }
+        else if (look_forward(1).type == toktype::exc_mark) {
+            content = parseExecution(position_code);
+        }
 
         result.pos = std::move(position_code);
         result.content = std::move(content);
@@ -208,11 +255,19 @@ class Parser {
             Error error(pos, errortype::syntax, "EXPECTED ENTRY CALL FOR EXECUTION");
         }
         advance();
-        NodePosition startingPosition;
-
         std::variant<Position, specialpos> pos_advance = specialpos::POS_DECL;
-        advance();
-        std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeIdentifier, NodeNumber> content = parseSegment(pos_advance);
+        NodePosition startingPosition = parsePos(pos_advance);
+        std::vector<NodeSegment> code;
+
+        while (!isTok(toktype::keyword, "ZetriScript")) {
+            advance();
+            NodeSegment content = std::move(parseSegment(pos_advance));
+            code.push_back(std::move(content));
+        }
+        NodeProg result;
+        result.startingPosition = startingPosition;
+        result.code = code;
+        return result;
     }
 
 }
