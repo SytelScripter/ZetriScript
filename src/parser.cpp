@@ -146,10 +146,9 @@ class Parser {
     }
 
     inline std::optional<Error> checkSyntaxError(toktype tokenType, std::string msg) {
-        ParseResult parse_result = ParseResult();
         if (currentToken.type != tokenType) {
-            parse_result.setErrorDirectly(pos, errortype::syntax, std::string("EXPECTED ") + msg);
-            return parse_result;
+            Error error = Error(pos, errortype::syntax, std::string("EXPECTED ") + msg);
+            return error;
         }
         advance();
         return std::nullopt;
