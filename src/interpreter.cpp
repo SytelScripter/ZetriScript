@@ -1,6 +1,7 @@
 #include "parser.cpp"
 #include <string>
 #include <unordered_map>
+#include <optional>
 
 using finalOutput = std::variant<int, float>;
 
@@ -51,6 +52,10 @@ class Interpreter {
         startingPos.posX = std::move(program.startingPosition.x.numTok.value);
         startingPos.posY = std::move(program.startingPosition.y.numTok.value);
         startingPos.posZ = std::move(program.startingPosition.z.numTok.value);
+    }
+
+    int visitNumber(NodeNumber node) {
+        return std::stoi(node.numTok.value);
     }
 
     void visitGoto(NodeGoto goto_) {
@@ -125,7 +130,7 @@ class Interpreter {
     }
 
     void visitSegment(NodeSegment segment) {
-        std::vector<finalOutput> segment_result;
+        std::vector<possibleReturnValues> segment_result;
         instruction_pos = 0;
         while (instruction_pos < segment.content.size()) {
             auto instruction = segment.content[instruction_pos];
@@ -140,22 +145,22 @@ class Interpreter {
                 instruction_pos++;
             }
             else if (std::holds_alternative<NodeLine>(instruction)) {
-                visitLine(std::get<NodeLine>(instruction))
+                visitLine(std::get<NodeLine>(instruction));
                 // segment_result.push_back(visitLine(std::get<NodeLine>(instruction)));
                 instruction_pos++;
             }
             else if (std::holds_alternative<NodeVarAccess>(instruction)) {
-                visitIdentifier(std::get<NodeVarAccess>(instruction))
+                visitIdentifier(std::get<NodeVarAccess>(instruction));
                 // segment_result.push_back(visitIdentifier(std::get<NodeVarAccess>(instruction)));
                 instruction_pos++;
             }
             else if (std::holds_alternative<NodeNumber>(instruction)) {
-                visitNumber(std::get<NodeNumber>(instruction))
+                visitNumber(std::get<NodeNumber>(instruction));
                 // segment_result.push_back(visitNumber(std::get<NodeNumber>(instruction)));
                 instruction_pos++;
             }
             else if (std::holds_alternative<NodeGoto>(instruction)) {
-                visitGoto(std::get<NodeGoto>(instruction))
+                visitGoto(std::get<NodeGoto>(instruction));
                 // segment_result.push_back(visitGoto(std::get<NodeGoto>(instruction)));
                 instruction_pos++;
             }
@@ -163,13 +168,13 @@ class Interpreter {
     }
 
     void visitProg() {
-        while (!comparePos(startingPos, convertPositionNode(program.code[i].pos))) {
+        while (!comparePos(startingPos, convertPositionNode(program.code[currentInstruction].pos))) {
             currentInstruction++;
             if (currentInstruction >= program.code.size()) {
-                std::cout << "ERROR: NO SUCH INSTRUCTION: [" << startingPos.x << ":" + startingPos.y << ":" << startingPos.z << "]\n";
+                std::cout << "ERROR: NO SUCH INSTRUCTION: [" << startingPos.xPos << ":" + startingPos.yPos << ":" << startingPos.zPos << "]\n";
                 return;
             }
         }
-        visitSegment(program.code[i]);
+        visitSegment(program.code[currentInstruction]);
     }
 };
