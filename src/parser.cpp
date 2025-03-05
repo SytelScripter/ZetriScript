@@ -6,18 +6,18 @@
 struct NodeNumber {
     Position pos;
     Token numTok;
-}
+};
 
-struct NodePosition {
+struct NodePositionAccess {
     NodeNumber x;
     NodeNumber y;
     NodeNumber z;
 };
 
-struct NodeLine {
-    Position pos;
-    NodePosition startPoint;
-    NodePosition Vector3;
+struct NodePositionAsign {
+    NodeNumber x;
+    NodeNumber y;
+    NodeNumber z;
 };
 
 struct NodeIdentifier {
@@ -45,7 +45,7 @@ struct NodeLine {
 struct NodeGoto {
     Position pos;
     NodePosition nextPos;
-}
+};
 
 struct NodeSegment {
     Position pos;
@@ -55,12 +55,65 @@ struct NodeSegment {
 struct NodeExec {
     Position pos;
     NodeIdentifier identName;
-}
+};
 
 struct NodeProg {
     NodePosition startingPosition;
     std::vector<NodeLine> code;
 };
+
+using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeIdentifier, NodePositionAsign, NodePositionAccess, NodeNumber, NodeGoto>;
+
+class ParseResult {
+    public:
+    anynode Node;
+    Error error;
+
+    ParseResult() {}
+
+    template<typename T>
+    ParseResult(T node) {
+        Node = node;
+    }
+
+    bool hasError() {
+        return !error.empty();
+    }
+
+    inline auto getValue() {
+        if (std::holds_alternative<NodeProg>(Node))             return std::get<NodeProg>(Node);
+        if (std::holds_alternative<NodeSegment>(Node))          return std::get<NodeSegment>(Node);
+        if (std::holds_alternative<NodeExec>(Node))             return std::get<NodeExec>(Node);
+        if (std::holds_alternative<NodeLine>(Node))             return std::get<NodeLine>(Node);
+        if (std::holds_alternative<NodeAlloc>(Node))            return std::get<NodeAlloc>(Node);
+        if (std::holds_alternative<NodeVarAssign>(Node))        return std::get<NodeVarAssign>(Node);
+        if (std::holds_alternative<NodeIdentifier>(Node))       return std::get<NodeIdentifier>(Node);
+        if (std::holds_alternative<NodePositionAsign>(Node))    return std::get<NodePositionAsign>(Node);
+        if (std::holds_alternative<NodePositionAccess>(Node))   return std::get<NodePositionAccess>(Node);
+        if (std::holds_alternative<NodeNumber>(Node))           return std::get<NodeNumber>(Node);
+        if (std::holds_alternative<NodeGoto>(Node))             return std::get<NodeGoto>(Node);
+    }
+
+    inline void setError(Error error_) {
+        error = std::move(error_);
+    }
+
+    inline void setErrorDirectly(std::variant<Position, specialpos> pos, errortype errorType, std::string description) {
+        error = Error(pos, errorType, description);
+    }
+
+    template<typename T>
+    T getKnownNode() {
+        return std::get<T>(Node);
+    }
+    
+    inline void checkError(*ParseResult result) {
+        if (result->hasError()) {
+            error = (result->error);
+        }
+        Node = std::move(result->getValue());
+    }
+}
 
 class Parser {
     private:
@@ -84,224 +137,399 @@ class Parser {
         return false;
     }
 
+    inline std::optional<Error> checkSyntaxError(toktype tokenType, std::string msg) {
+        if (currentToken.type != tokenType) {
+            Error error = Error(pos, errortype::syntax, std::string("EXPECTED ") + msg);
+            parse_result.setError(error);
+            return parse_result;
+        }
+        advance();
+        return std::nullopt;
+    }
+
     public:
     Parser(std::vector<Token> tokens_) : tokens(tokens_) {
         advance();
     }
 
-    NodeVarAssign parseVarAssign(std::variant<Position, specialpos> pos) {
-        if (currentToken.type != toktype::name) {
-            Error error(pos, errortype::syntax, "EXPECTED IDENTIFIER");
+    ParseResult parseVarAssign(std::variant<Position, specialpos> pos) {
+        std::optional<Error> temp;
+        ParseResult parse_result = ParseResult();
+        temp = checkSyntaxError(toktype::name, "IDENTIFIER");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
+
         NodeIdentifier identifier;
         identifier.identName = currentToken;
         advance();
-        if (currentToken.type != toktype::equals) {
-            Error error(pos, errortype::syntax, "EXPECTED '='");
+
+        temp = checkSyntaxError(toktype::equals, "'='");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
-        std::variant<NodeLine, NodeIdentifier, NodeAlloc> value;
+
+        std::variant<NodeLine, NodeIdentifier, NodeAlloc, NodeGoto> value;
+        ParseResult value_result = ParseResult();
         if (isTok(toktype::keyword, "allocSpace")) {
-            value = parseAlloc(position_code);
+            value_result.checkError(&parseAlloc(position_code));
+            if (value_result.hasError()) return value_result;
         }
         else if (isTok(toktype::keyword, "LINE")) {
-            value = parseLine(position_code);
+            value_result.checkError(&parseLine(position_code));
+            if (value_result.hasError()) return value_result;
         }
+        value = value_result.getValue();
+
         NodeVarAssign result;
-        result.ident = identifier;
-        result.value = value;
-        return result;
+        result.pos = pos;
+        result.ident = std::move(identifier);
+        result.value = std::move(value);
+
+        parse_result.Node = std::move(result);
+        return parse_result;
     }
 
-    NodeNumber parseNumber(std::variant<Position, specialpos> pos) {
+    ParseResult parseNumber(std::variant<Position, specialpos> pos) {
+        ParseResult parse_result = ParseResult();
         if (currentToken.type != toktype::int_lit && currentToken.type != toktype::float_lit) {
-            Error error(pos, errortype::syntax, "EXPECTED '['");
+            Error error = Error(pos, errortype::syntax, "EXPECTED '['");
+            parse_result.setError(error);
+            return parse_result;
         }
         Token numTok(currentToken.type, currentToken.value);
         advance();
         NodeNumber result;
         result.pos = pos;
         result.numTok = std::move(numTok);
-        return result;
+        
+        parse_result.Node = std::move(result);
+        return parse_result;
     }
 
-    NodeLine parseLine(std::variant<Position, specialpos> pos) {
+    ParseResult parseLine(std::variant<Position, specialpos> pos) {
+        std::optional<Error> temp;
+        ParseResult parse_result = ParseResult();
         if (!isTok(toktype::keyword, "LINE")) {
-            Error error(pos, errortype::syntax, "EXPECTED KEYWORD 'LINE'");
+            Error error = Error(pos, errortype::syntax, "EXPECTED KEYWORD 'LINE'");
+            parse_result.setError(error);
+            return parse_result;
         }
         advance();
-        if (currentToken.type != toktype::left_paren) {
-            Error error(pos, errortype::syntax, "EXPECTED '('");
+        temp = checkSyntaxError(toktype::left_paren, "'('");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
+
         NodePosition pos1(parsePos(pos));
         advance();
-        if (currentToken.type != toktype::comma) {
-            Error error(pos, errortype::syntax, "EXPECTED ','");
+
+        temp = checkSyntaxError(toktype::comma, "','");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
+        ParseResult temp = parsePos(pos);
+        NodePosition pos2();
         advance();
-        NodePosition pos2(parsePos(pos));
-        advance();
-        if (currentToken.type != toktype::right_paren) {
-            Error error(pos, errortype::syntax, "EXPECTED ')'");
+        
+        temp = checkSyntaxError(toktype::right_paren, "')'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
-        if (currentToken.type != toktype::semicolon) {
-            Error error(pos, errortype::syntax, "EXPECTED ';'");
+                
+        temp = checkSyntaxError(toktype::semicolon, "';'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
+
         NodeLine result;
         result.pos = pos;
         result.pos1 = std::move(pos1);
         result.pos2 = std::move(pos2);
-        return result;
+        parse_result.setNode(std::move(result));
+        return parse_result;
     }
 
-    NodeExec parseExecution(std::variant<Position, specialpos> pos) {
+    ParseResult parseExecution(std::variant<Position, specialpos> pos) {
+        std::optional<Error> temp;
+        ParseResult parse_result = ParseResult();
+
         if (currentToken.type != toktype::name) {
-            Error error(pos, errortype::syntax, "EXPECTED IDENTIFIER BEFORE CALL");
+            parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED IDENTIFIER BEFORE CALL");
+            return parse_result;
         }
         NodeIdentifier ident;
         ident.identName = currentToken;
         advance();
-        if (currentToken.type != toktype::exc_mark) {
-            Error error(pos, errotype::syntax, "EXPECTED '!'");
+
+        temp = checkSyntaxError(toktype::exc_mark, "'!'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
+
         NodeExec result;
         result.identName = ident;
-        return result;
+        parse_result.Node = std::move(result);
+        return parse_result;
     }
 
-    NodeAlloc parseAlloc(std::variant<Position, specialpos> pos) {
+    ParseResult parseAlloc(std::variant<Position, specialpos> pos) {
+        std::optional<Error> temp;
+        ParseResult parse_result = ParseResult();
+
         if (!isTok(toktype::keyword, "allocSpace")) {
-            Error error(pos, errortype::syntax, "EXPECTED KEYWORD 'allocSpace'");
+            parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED KEYWORD 'allocSpace'");
+            return parse_result;
         }
         advance();
-        if (currentToken.type != toktype::left_paren) {
-            Error error(pos, errortype::syntax, "EXPECTED '('");
+
+        temp = checkSyntaxError(toktype::left_paren, "'('");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
+
         if (currentToken.type != toktype::name) {
-            Error error(pos, errortype::syntax, "EXPECTED IDENTIFIER");
+            parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED IDENTIFIER");
+            return parse_result;
         }
         NodeIdentifier allocated;
         allocated.identName = currentToken;
         advance();
-        if (currentToken.type != toktype::right_paren) {
-            Error error(pos, errortype::syntax, "EXPECTED ')'");
+
+        temp = checkSyntaxError(toktype::right_paren, "')'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
-        if (currentToken.type != toktype::semicolon) {
-            Error error(pos, errortype::syntax, "EXPECTED ';'");
+
+        temp = checkSyntaxError(toktype::semicolon, "';'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
+
         NodeAlloc result;
         result.pos = pos;
         result.allocated = std::move(allocated);
-        return result;
+        
+        parse_result.Node = std::move(result);
+        return parse_result;
     }
 
-    NodePosition parsePos(std::variant<Position, specialpos> pos) {
-        if (currentToken.type != toktype::left_square) {
-            Error error(pos, errortype::syntax, "EXPECTED '['");
+    ParseResult parseAccessPos(std::variant<Position, specialpos> pos) {
+        std::optional<Error> temp;
+        ParseResult parse_result = ParseResult();
+
+        temp = checkSyntaxError(toktype::left_square, "'['");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
+
         NodeNumber posX = parseNumber(pos);
         advance();
-        if (currentToken.type != toktype::colon) {
-            Error error(pos, errortype::syntax, "EXPECTED ':'");
+
+        temp = checkSyntaxError(toktype::colon, "':'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
+
         NodeNumber posY = parseNumber(pos);
         advance();
-        if (currentToken.type != toktype::colon) {
-            Error error(pos, errortype::syntax, "EXPECTED ':'");
+        
+        temp = checkSyntaxError(toktype::colon, "':'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
+
         NodeNumber posZ = parseNumber(pos);
         advance();
-        if (currentToken.type != toktype::right_square) {
-            Error error(pos, errortype::syntax, "EXPECTED ']'");
+
+        temp = checkSyntaxError(toktype::right_square, "']'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
-        if (currentToken.type != toktype::colon) {
-            Error error(pos, errortype::syntax, "EXPECTED ':'");
-        }
-        advance();
-        NodePosition result;
+
+        NodePositionAccess result;
         result.x = std::move(posX);
         result.y = std::move(posY);
         result.z = std::move(posZ);
 
-        return result;
+        parse_result.Node = std::move(result);
+        return parse_result;
+    }
+    
+    ParseResult parseAssignPos(std::variant<Position, specialpos> pos) {
+        std::optional<Error> temp;
+        ParseResult parse_result = ParseResult();
+
+        temp = checkSyntaxError(toktype::left_square, "'['");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
+        }
+
+        NodeNumber posX = parseNumber(pos);
+        advance();
+
+        temp = checkSyntaxError(toktype::colon, "':'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
+        }
+
+        NodeNumber posY = parseNumber(pos);
+        advance();
+        
+        temp = checkSyntaxError(toktype::colon, "':'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
+        }
+
+        NodeNumber posZ = parseNumber(pos);
+        advance();
+
+        temp = checkSyntaxError(toktype::right_square, "']'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
+        }
+
+        temp = checkSyntaxError(toktype::colon, "':'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
+        }
+
+        NodePositionAssign result;
+        result.x = std::move(posX);
+        result.y = std::move(posY);
+        result.z = std::move(posZ);
+
+        parse_result.setNode(std::move(result));
+        return parse_result;
     }
 
-    NodeGoto parseGoto(std::variant<Position, specialpos> pos) {
+    ParseResult parseGoto(std::variant<Position, specialpos> pos) {
+        std::optional<Error> temp;
+        ParseResult parse_result = ParseResult();
+
         if (!isTok(toktype::keyword, "goto")) {
-            Error error(pos, errortype::syntax, "EXPECTED 'goto'");
+            parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED 'goto'");
+            return parse_result;
         }
         advance();
-        NodePosition nextPos = parsePos(pos);
+        ParseResult pos_result = ParseResult();
+        pos_result.checkError(parseAccessPos(pos));
+        if (pos_result.hasError()) return pos_result;
         advance();
-        if (currentToken.type != toktype::exc_mark) {
-            Error error(pos, errortype::syntax, "'goto' INSTRUCTION IS EXECUTABLE");
+
+        temp = checkSyntaxError(toktype::exc_mark, "'!'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
         }
-        advance();
+
         NodeGoto result;
         result.pos = pos;
         result.nextPos = std::move(nextPos);
-        return result;
+
+        parse_result.Node = std::move(result);
+        return parse_result;
     }
 
-    NodeSegment parseSegment(std::variant<Position, specialpos> pos) {
+    ParseResult parseSegment(std::variant<Position, specialpos> pos) {
+        std::optional<Error> temp;
+        ParseResult parse_result = ParseResult();
         NodeSegment result;
+        
         std::variant<Position, specialpos> pos_advance = specialpos::POS_DECL;
-        std::variant<Position, specialpos> position_code = parsePos(pos_advance);
-        std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeIdentifier, NodeNumber, NodeGoto> content;
+        ParseResult pos_result = ParseResult()
+        pos_result.checkError(parseAssignPos(pos_advance));
+        if (pos_result.hasError()) return pos_result;
+
+        NodePositionAccess segment_position = pos_result.getValue();
+        std::variant<Position, specialpos> position_code = Position(segment_position.x.numTok.value, segment_position.y.numTok.value, segment_position.z.numTok.value);
+        
+        ParseResult content = ParseResult();
         if (isTok(toktype::keyword, "allocSpace")) {
-            content = parseAlloc(position_code);
+            content.checkError(&parseAlloc(position_code));
+            if (content.hasError()) return content;
         }
         else if (look_forward(1).type == toktype::equals) {
-            content = parseVarAssign(position_code);
+            content.checkError(&parseVarAssign(position_code));
+            if (content.hasError()) return content;
         }
         else if (isTok(toktype::keyword, "LINE")) {
-            content = parseLine(position_code);
+            content.checkError(&parseLine(position_code));
+            if (content.hasError()) return content;
         }
         else if (look_forward(1).type == toktype::exc_mark) {
-            content = parseExecution(position_code);
+            content.checkError(&parseExecution(position_code));
+            if (content.hasError()) return content;
         }
         else if (isTok(toktype::keyword, "goto")) {
-            content = parseGoto(position_code);
+            content.checkError(&parseGoto(position_code));
+            if (content.hasError()) return content;
         }
 
         result.pos = std::move(position_code);
-        result.content = std::move(content);
-        return result;
+        result.content = std::move(content.getValue());
+
+        parse_result.Node = std::move(result);
+        return parse_result;
     }
 
-    NodeProg parse(std::variant<Position, specialpos> pos) {
-        if (!isTok(toktype::keyword, "ZetriScript")) {
-            Error error(pos, errortype::syntax, "EXPECTED 'ZetriScript' KEYWORD AT THE MAIN ENTERANCE");
-        }
-        advance();
-        if (currentToken.type != toktype::exc_mark) {
-            Error error(pos, errortype::syntax, "EXPECTED ENTRY CALL FOR EXECUTION");
-        }
-        advance();
-        std::variant<Position, specialpos> pos_advance = specialpos::POS_DECL;
-        NodePosition startingPosition = parsePos(pos_advance);
-        std::vector<NodeSegment> code;
+    ParseResult parse(std::variant<Position, specialpos> pos) {
+        std::optional<Error> temp;
+        ParseResult parse_result = ParseResult();
+        
 
+        if (!isTok(toktype::keyword, "ZetriScript")) {
+            parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED 'ZetriScript' KEYWORD AT THE MAIN ENTERANCE");
+            return parse_result;
+        }
+        advance();
+        temp = checkSyntaxError(toktype::exc_mark, "ENTRY CALL FOR EXECUTION '!'");
+        if (temp.has_value()) {
+            parse_result.setError(temp.value());
+            return parse_result;
+        }
+
+        std::variant<Position, specialpos> pos_advance = specialpos::POS_DECL;
+        parse_result.checkError(&parsePos(pos_advance));
+        if (parse_result.hasError()) return parse_result;
+
+        std::vector<NodeSegment> code;
         while (!isTok(toktype::keyword, "ZetriScript")) {
             advance();
-            NodeSegment content = std::move(parseSegment(pos_advance));
-            code.push_back(std::move(content));
+            ParseResult segment_result = ParseResult();
+            segment_result.checkError(&parseSegment(pos_advance));
+            if (segment_result.hasError()) return segment_result;
+            code.push_back(std::move(segment_result.getKnownNode<NodeSegment>()));
+            if (idx == tokens.size()) {
+                parse_result.setErrorDirectly(pos_advance, errortype::syntax, "'ZetriScript' KEYWORD AT THE END OF THE FILE");
+                return parse_result;
+            }
         }
+        
         NodeProg result;
-        result.startingPosition = startingPosition;
-        result.code = code;
-        return result;
+        result.startingPosition = std::move(startingPosition);
+        result.code = std::move(code);
+        parse_result.setNode(std::move(result));
+        return parse_result;
     }
 
 }

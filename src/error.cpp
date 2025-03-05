@@ -1,6 +1,7 @@
 #include "position.cpp"
 
 enum errortype {
+    none = -1,
     illegalChar,
     syntax,
 }
@@ -33,5 +34,12 @@ class Error {
         else if (errorType == syntax) {
             std::cout << "INVALID SYNTAX: " << details;
         }
+    }
+
+    inline bool empty() {
+        if (errorType != none || !description.empty() || std::holds_alternative<Position>(pos) || std::holds_alternative<specialpos>(pos)) {
+            return true;
+        }
+        return false;
     }
 }
