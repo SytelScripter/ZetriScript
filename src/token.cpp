@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <array>
+#include <string>
 
 enum toktype {
     keyword,
