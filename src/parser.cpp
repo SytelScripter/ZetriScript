@@ -377,7 +377,7 @@ class Parser {
             parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED IDENTIFIER");
             return parse_result;
         }
-        NodeVarAccess allocated(pos, currentToken);
+        NodeVarAccess allocated(std::get<Position>(pos), currentToken);
         advance();
 
         temp = checkSyntaxError(toktype::right_paren, "')'");
