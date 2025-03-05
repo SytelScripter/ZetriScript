@@ -24,7 +24,8 @@ std::vector<std::string> keywords_list = {
     "ZetriScript",
     "LINE",
     "allocSpace",
-    "drawPixel"
+    "drawPixel",
+    "goto"
 };
 
 class Token {

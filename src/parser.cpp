@@ -4,6 +4,7 @@
 #include <variant>
 
 struct NodeNumber {
+    Position pos;
     Token numTok;
 }
 
@@ -14,31 +15,41 @@ struct NodePosition {
 };
 
 struct NodeLine {
+    Position pos;
     NodePosition startPoint;
     NodePosition Vector3;
 };
 
 struct NodeIdentifier {
+    Position pos;
     Token identName;
 };
 
 struct NodeVarAssign {
+    Position pos;
     NodeIdentifier ident;
     std::variant<NodeLine, NodeIdentifier, NodeAlloc> value;
 };
 
 struct NodeAlloc {
+    Position pos;
     NodeIdentifier allocated;
 };
 
 struct NodeLine {
-    Position pos1;
-    Position pos2;
+    Position pos
+    NodePosition pos1;
+    NodePosition pos2;
 };
+
+struct NodeGoto {
+    Position pos;
+    NodePosition nextPos;
+}
 
 struct NodeSegment {
     Position pos;
-    std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeExec, NodeIdentifier, NodeNumber> content;
+    std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeIdentifier, NodeNumber, NodeGoto> content;
 };
 
 struct NodeExec {
@@ -109,7 +120,8 @@ class Parser {
         Token numTok(currentToken.type, currentToken.value);
         advance();
         NodeNumber result;
-        result.numTok = numTok;
+        result.pos = pos;
+        result.numTok = std::move(numTok);
         return result;
     }
 
@@ -122,13 +134,13 @@ class Parser {
             Error error(pos, errortype::syntax, "EXPECTED '('");
         }
         advance();
-        Position pos1(parsePos(pos));
+        NodePosition pos1(parsePos(pos));
         advance();
         if (currentToken.type != toktype::comma) {
             Error error(pos, errortype::syntax, "EXPECTED ','");
         }
         advance();
-        Position pos2(parsePos(pos));
+        NodePosition pos2(parsePos(pos));
         advance();
         if (currentToken.type != toktype::right_paren) {
             Error error(pos, errortype::syntax, "EXPECTED ')'");
@@ -139,6 +151,7 @@ class Parser {
         }
         advance();
         NodeLine result;
+        result.pos = pos;
         result.pos1 = std::move(pos1);
         result.pos2 = std::move(pos2);
         return result;
@@ -184,6 +197,7 @@ class Parser {
         }
         advance();
         NodeAlloc result;
+        result.pos = pos;
         result.allocated = std::move(allocated);
         return result;
     }
@@ -223,11 +237,28 @@ class Parser {
         return result;
     }
 
+    NodeGoto parseGoto(std::variant<Position, specialpos> pos) {
+        if (!isTok(toktype::keyword, "goto")) {
+            Error error(pos, errortype::syntax, "EXPECTED 'goto'");
+        }
+        advance();
+        NodePosition nextPos = parsePos(pos);
+        advance();
+        if (currentToken.type != toktype::exc_mark) {
+            Error error(pos, errortype::syntax, "'goto' INSTRUCTION IS EXECUTABLE");
+        }
+        advance();
+        NodeGoto result;
+        result.pos = pos;
+        result.nextPos = std::move(nextPos);
+        return result;
+    }
+
     NodeSegment parseSegment(std::variant<Position, specialpos> pos) {
         NodeSegment result;
         std::variant<Position, specialpos> pos_advance = specialpos::POS_DECL;
         std::variant<Position, specialpos> position_code = parsePos(pos_advance);
-        std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeIdentifier, NodeNumber> content;
+        std::variant<NodeAlloc, NodeVarAssign, NodeLine, NodeIdentifier, NodeNumber, NodeGoto> content;
         if (isTok(toktype::keyword, "allocSpace")) {
             content = parseAlloc(position_code);
         }
@@ -239,6 +270,9 @@ class Parser {
         }
         else if (look_forward(1).type == toktype::exc_mark) {
             content = parseExecution(position_code);
+        }
+        else if (isTok(toktype::keyword, "goto")) {
+            content = parseGoto(position_code);
         }
 
         result.pos = std::move(position_code);

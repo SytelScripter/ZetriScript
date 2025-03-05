@@ -1,6 +1,6 @@
 #include "parser.cpp"
 
-using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeIdentifier, NodePosition, NodeNumber>;
+using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAlloc, NodeVarAssign, NodeIdentifier, NodePosition, NodeNumber, NodeGoto>;
 
 class Interpreter {
     private:
