@@ -570,8 +570,7 @@ class Parser {
         std::vector<NodeSegment> code;
         while (!isTok(toktype::keyword, "ZetriScript")) {
             advance();
-            ParseResult segment_result = ParseResult();
-            segment_result.checkError(&parseSegment(pos_advance));
+            ParseResult segment_result = parseSegment(pos_advance);
             if (segment_result.hasError()) return segment_result;
             code.push_back(segment_result.getKnownNode<NodeSegment>());
             if (idx >= tokens.size()) {
