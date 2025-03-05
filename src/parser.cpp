@@ -498,7 +498,7 @@ class Parser {
         NodePositionAccess segment_position = pos_result.getValue();
         std::variant<Position, specialpos> position_code = Position(segment_position.x.numTok.value, segment_position.y.numTok.value, segment_position.z.numTok.value);
         
-        result.pos = std::move(position_code);
+        result.pos = std::move(std::get<Position>(position_code));
 
         while (currentToken.type != toktype::exc_mark) {
             ParseResult content = ParseResult();
