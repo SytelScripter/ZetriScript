@@ -392,7 +392,7 @@ class Parser {
             return parse_result;
         }
 
-        NodeAlloc result(pos, allocated);
+        NodeAlloc result(std::get<Position>(pos), allocated);
         
         parse_result.setNode(std::move(result));
         return parse_result;
