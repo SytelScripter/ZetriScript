@@ -223,12 +223,12 @@ class Parser {
         
         ParseResult value_result = ParseResult();
         if (isTok(toktype::keyword, "allocSpace")) {
-            value_result = parseAlloc(position_code);
+            value_result = parseAlloc(pos);
             if (value_result.hasError()) return value_result;
             value = value_result.getKnownNode<NodeAlloc>();
         }
         else if (isTok(toktype::keyword, "LINE")) {
-            value_result = parseLine(position_code);
+            value_result = parseLine(pos);
             if (value_result.hasError()) return value_result;
             value = value_result.getKnownNode<NodeLine>();
         }
