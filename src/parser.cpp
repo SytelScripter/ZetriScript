@@ -484,7 +484,7 @@ class Parser {
         }
 
         NodeGoto result;
-        result.pos = pos;
+        result.pos = std::get<Position>(pos);
         result.nextPos = std::move(nextPos);
 
         parse_result.setNode(std::move(result));
