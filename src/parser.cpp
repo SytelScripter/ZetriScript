@@ -69,14 +69,14 @@ using anynode = std::variant<NodeProg, NodeSegment, NodeExec, NodeLine, NodeAllo
 
 class ParseResult {
     public:
-    anynode Node;
+    anynode NodeResult;
     Error error;
 
     ParseResult() {}
 
     template<typename T>
     ParseResult(T node) {
-        Node = node;
+        NodeResult = node;
     }
 
     inline bool hasError() {
@@ -84,17 +84,17 @@ class ParseResult {
     }
 
     inline auto getValue() {
-        if (std::holds_alternative<NodeProg>(Node))             return std::get<NodeProg>(Node);
-        if (std::holds_alternative<NodeSegment>(Node))          return std::get<NodeSegment>(Node);
-        if (std::holds_alternative<NodeExec>(Node))             return std::get<NodeExec>(Node);
-        if (std::holds_alternative<NodeLine>(Node))             return std::get<NodeLine>(Node);
-        if (std::holds_alternative<NodeAlloc>(Node))            return std::get<NodeAlloc>(Node);
-        if (std::holds_alternative<NodeVarAssign>(Node))        return std::get<NodeVarAssign>(Node);
-        if (std::holds_alternative<NodeVarAccess>(Node))       return std::get<NodeVarAccess>(Node);
-        if (std::holds_alternative<NodePositionAsign>(Node))    return std::get<NodePositionAsign>(Node);
-        if (std::holds_alternative<NodePositionAccess>(Node))   return std::get<NodePositionAccess>(Node);
-        if (std::holds_alternative<NodeNumber>(Node))           return std::get<NodeNumber>(Node);
-        if (std::holds_alternative<NodeGoto>(Node))             return std::get<NodeGoto>(Node);
+        if (std::holds_alternative<NodeProg>(NodeResult))             return std::get<NodeProg>(NodeResult);
+        if (std::holds_alternative<NodeSegment>(NodeResult))          return std::get<NodeSegment>(NodeResult);
+        if (std::holds_alternative<NodeExec>(NodeResult))             return std::get<NodeExec>(NodeResult);
+        if (std::holds_alternative<NodeLine>(NodeResult))             return std::get<NodeLine>(NodeResult);
+        if (std::holds_alternative<NodeAlloc>(NodeResult))            return std::get<NodeAlloc>(NodeResult);
+        if (std::holds_alternative<NodeVarAssign>(NodeResult))        return std::get<NodeVarAssign>(NodeResult);
+        if (std::holds_alternative<NodeVarAccess>(NodeResult))       return std::get<NodeVarAccess>(NodeResult);
+        if (std::holds_alternative<NodePositionAsign>(NodeResult))    return std::get<NodePositionAsign>(NodeResult);
+        if (std::holds_alternative<NodePositionAccess>(NodeResult))   return std::get<NodePositionAccess>(NodeResult);
+        if (std::holds_alternative<NodeNumber>(NodeResult))           return std::get<NodeNumber>(NodeResult);
+        if (std::holds_alternative<NodeGoto>(NodeResult))             return std::get<NodeGoto>(NodeResult);
     }
 
     inline void setError(Error error_) {
@@ -107,14 +107,14 @@ class ParseResult {
 
     template<typename T>
     inline T getKnownNode() {
-        return std::get<T>(Node);
+        return std::get<T>(NodeResult);
     }
     
     inline void checkError(*ParseResult result) {
         if (result->hasError()) {
             error = (result->error);
         }
-        Node = std::move(result->getValue());
+        NodeResult = std::move(result->getValue());
     }
 };
 
