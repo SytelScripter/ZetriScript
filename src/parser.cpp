@@ -152,7 +152,7 @@ class ParseResult {
 
     template<typename T>
     inline void setNode(T node) {
-        nodeResult = node;
+        this->nodeResult = node;
     }
 
     inline anynode getNode() {
