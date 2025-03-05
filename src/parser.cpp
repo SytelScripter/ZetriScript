@@ -128,7 +128,7 @@ class ParseResult {
         return !error.empty();
     }
 
-    inline auto getValue() {
+    inline auto& getValue() {
         if (std::holds_alternative<NodeProg>(nodeResult))             return std::get<NodeProg>(nodeResult);
         if (std::holds_alternative<NodeSegment>(nodeResult))          return std::get<NodeSegment>(nodeResult);
         if (std::holds_alternative<NodeExec>(nodeResult))             return std::get<NodeExec>(nodeResult);
@@ -218,21 +218,16 @@ class Parser {
             parse_result.setError(temp.value());
             return parse_result;
         }
-
-        std::variant<NodeLine, NodeVarAccess, NodeAlloc, NodeGoto> value;
-        
         ParseResult value_result = ParseResult();
         if (isTok(toktype::keyword, "allocSpace")) {
             value_result = parseAlloc(pos);
             if (value_result.hasError()) return value_result;
-            value = value_result.getKnownNode<NodeAlloc>();
         }
         else if (isTok(toktype::keyword, "LINE")) {
             value_result = parseLine(pos);
             if (value_result.hasError()) return value_result;
-            value = value_result.getKnownNode<NodeLine>();
         }
-        
+        auto value = value_result.getValue();
 
         NodeVarAssign result;
         result.pos = std::get<Position>(pos);
