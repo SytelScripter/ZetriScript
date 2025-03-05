@@ -240,8 +240,7 @@ class Parser {
     ParseResult parseNumber(std::variant<Position, specialpos> pos) {
         ParseResult parse_result = ParseResult();
         if (currentToken.type != toktype::int_lit && currentToken.type != toktype::float_lit) {
-            Error error = Error(pos, errortype::syntax, "EXPECTED '['");
-            parse_result.setError(error);
+            parse_result.setErrorDirectly(pos, errortype::syntax, "EXPECTED '['");
             return parse_result;
         }
         Token_ numTok(currentToken.type, currentToken.value);
