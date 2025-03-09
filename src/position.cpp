@@ -10,11 +10,10 @@ class TokenPosition {
     public:
     std::string line = 0;
     std::string col = 0;
+    std::string fileTxt = "";
 
     TokenPosition(int x = 0) {}
-    TokenPosition(specialpos specialPos_) : specialPos(specialPos_) {}
-    TokenPosition(std::string col_) : col(col_) {}
-    TokenPosition(std::string xPos_, std::string yPos_, std::string zPos_, std::string col_) : xPos(xPos_), yPos(yPos_), zPos(zPos_), col(col_) {}
+    TokenPosition(std::string fileTxt_, std::string col_, std::string line_) : fileTxt(fileTxt_), col(col_), line(line_) {}
 };
 
 class ParsePosition {
@@ -23,11 +22,10 @@ class ParsePosition {
     std::string x;
     std::string y;
     std::string z;
-    TokenPosition realPos;
 
     ParsePosition(int x = 0) {}
     ParsePosition(specialpos specialPos_) : specialPos(specialPos_) {}
-    ParsePosition(std::string xPos_, std::string yPos_, std::string zPos_, TokenPosition realPos_) : x(xPos_), y(yPos_), z(zPos_), realPos(realPos_) {}
+    ParsePosition(std::string xPos_, std::string yPos_, std::string zPos_) : x(xPos_), y(yPos_), z(zPos_), realStartPos(realStartPos_), realEndPos(realEndPos_) {}
 
     boolean isSpecial() {
         if (!empty(x) && !empty(y) && !empty(z_)) {

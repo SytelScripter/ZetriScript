@@ -14,7 +14,7 @@ inline std::string token_arrows(std::string str, TokenPosition start, TokenPosit
     // ^^^
 
 
-    // there are
+    // there are:
     // starting lines
     // between lines
     // end lines
@@ -71,5 +71,10 @@ inline std::string token_arrows(std::string str, TokenPosition start, TokenPosit
         }
         i++;
     }
+    return result;
+}
+
+inline std::string parser_arrows(ParsePosition pos) {
+    std::string result = token_arrows(pos.realStartPos.fileTxt, pos.realStartPos, pos.realEndPos);
     return result;
 }

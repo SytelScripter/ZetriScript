@@ -13,7 +13,10 @@ enum class toktype {
     left_curly,
     right_curly,
     semicolon,
-    dash,
+    plus,
+    minus,
+    mul,
+    div,
     colon,
     equals,
     left_paren,
@@ -39,10 +42,11 @@ class Token_ {
     toktype type;
     std::string value;
     TokenPosition posStart, posEnd;
+    boolean hasValue;
 
     Token_() : type(toktype::none), value("") {}
-    Token_(TokenPosition posStart_, TokenPosition posEnd_, toktype type_) : posStart(posStart_), posEnd(posEnd_), type(type_), value("") {}
-    Token_(TokenPosition posStart_, TokenPosition posEnd_, toktype type_, std::string value_) : posStart(posStart_), posEnd(posEnd_), type(type_), value(value_) {}
+    Token_(TokenPosition posStart_, TokenPosition posEnd_, toktype type_) : posStart(posStart_), posEnd(posEnd_), type(type_), value("") { hasValue = false; }
+    Token_(TokenPosition posStart_, TokenPosition posEnd_, toktype type_, std::string value_) : posStart(posStart_), posEnd(posEnd_), type(type_), value(value_) { hasValue = true; }
 
     std::array<2, TokenPosition> get_position() {
         std::array<2, TokenPosition> pos = {{posStart, posEnd}};

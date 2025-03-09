@@ -16,11 +16,11 @@ private:
         }
     }
 
-    inline void addToken_(toktype type_) {
+    inline void addToken_(toktype type_, char value_) {
         TokenPosition posStart = TokenPosition(idx);
         advance();
         TokenPosition posEnd = TokenPosition(idx - 1);
-        Token_ result = Token_(posStart, posEnd, type_);
+        Token_ result = Token_(posStart, posEnd, type_, value_);
         tokens.push_back(result);
     }
 
@@ -42,19 +42,22 @@ public:
             else if (std::isdigit(currentChar)) {
                 tokens.push_back(makeNumber());
             }
-            else if (currentChar == '{') addToken_(toktype::left_curly);
-            else if (currentChar == '}') addToken_(toktype::right_curly);
-            else if (currentChar == '[') addToken_(toktype::left_square);
-            else if (currentChar == ']') addToken_(toktype::right_square);
-            else if (currentChar == '(') addToken_(toktype::left_paren);
-            else if (currentChar == ')') addToken_(toktype::right_paren);
-            else if (currentChar == ':') addToken_(toktype::colon);
-            else if (currentChar == ';') addToken_(toktype::semicolon);
-            else if (currentChar == '-') addToken_(toktype::dash);
-            else if (currentChar == '=') addToken_(toktype::equals);
-            else if (currentChar == '!') addToken_(toktype::exc_mark);
-            else if (currentChar == ',') addToken_(toktype::comma);
-            else if (currentChar == '.') addToken_(toktype::dot);
+            else if (currentChar == '{') addToken_(toktype::left_curly, "{");
+            else if (currentChar == '}') addToken_(toktype::right_curly, "}");
+            else if (currentChar == '[') addToken_(toktype::left_square, "[");
+            else if (currentChar == ']') addToken_(toktype::right_square, "]");
+            else if (currentChar == '+') addToken_(toktype::plus, "+");
+            else if (currentChar == '-') addToken_(toktype::minus, "-");
+            else if (currentChar == '*') addToken_(toktype::mul, "*");
+            else if (currentChar == '/') addToken_(toktype::div, "/");
+            else if (currentChar == '(') addToken_(toktype::left_paren, "(");
+            else if (currentChar == ')') addToken_(toktype::right_paren, ")");
+            else if (currentChar == ':') addToken_(toktype::colon, ":");
+            else if (currentChar == ';') addToken_(toktype::semicolon, ";");
+            else if (currentChar == '=') addToken_(toktype::equals, "=");
+            else if (currentChar == '!') addToken_(toktype::exc_mark, "!");
+            else if (currentChar == ',') addToken_(toktype::comma, ",");
+            else if (currentChar == '.') addToken_(toktype::dot, ".");
         }
 
         return tokens;
