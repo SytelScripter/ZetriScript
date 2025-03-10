@@ -60,7 +60,7 @@ class Token_ {
         result += ", Value: ";
         result += value;
         result += ", Position: ";
-        result += "(" + std::to_string(posStart.line) + ", " + std::to_string(posStart.column) + ") - (" + std::to_string(posEnd.line) + ", " + std::to_string(posEnd.column) + ")";
+        result += "(" + std::to_string(posStart.line) + ", " + std::to_string(posStart.col) + ") - (" + std::to_string(posEnd.line) + ", " + std::to_string(posEnd.col) + ")";
         return result;
     }
 };
