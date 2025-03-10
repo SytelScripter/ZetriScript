@@ -2,7 +2,7 @@
 #include <vector>
 #include <array>
 #include <string>
-#include "TokenPosition.cpp"
+#include "position.cpp"
 
 enum class toktype {
     none = -1,
