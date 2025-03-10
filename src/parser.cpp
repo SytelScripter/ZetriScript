@@ -70,8 +70,10 @@ public:
         // create the term node
         std::unique_ptr<node::NodeBinOp> result;
         std::unique_ptr<node::NodeNumber> node = parse_factor();
+        bool returnBinOp = false;
         if (is_token_type(toktype::mul) || is_token_type(toktype::div)) {
             result->left_expr = node;
+            returnBinOp = true;
         }
         while (idx_ < tokens_.size() && (is_token_type(toktype::star) || is_token_type(toktype::slash))) {
             Token_ op = tokens_[idx_++];
@@ -80,7 +82,9 @@ public:
             result_->left_expr = std::move(result);
             result_->op = op;
             result_->right_expr = std::move(right_expr);
+            result->left_expr = std::move(result_);
         }
+        if (returnBinOp) return result;
         return node;
     }
 
