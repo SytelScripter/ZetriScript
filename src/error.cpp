@@ -25,7 +25,7 @@ class ErrorSyntax {
     std::string details;
 
     public:_
-    ErrorSyntax(ParsePosition pos_, std::string details_) : pos(pos_), details(details_) {}
+    ErrorSyntax(ParsePosition pos_, const std::string &details_) : pos(pos_), details(details_) {}
 
     inline void display() {
         std::cout << "ERROR OCCURED AT [" << pos.x << ", " << pos.y << ", " << pos.z << "]\n:";
