@@ -248,10 +248,10 @@ public:
         // parsing binary operation node
         std::string left_expr, right_expr;
         if (std::holds_alternative<node::NodeBinOp>(node_->left_expr)) left_expr = evaluate_expression(std::get<std::unique_ptr<node::NodeBinOp>>(node_->left_expr));
-        else if (std::holds_alternative<node::NodeNumber>(node_->left_expr)) left_expr = std::to_string(std::get<std::unique_ptr<node::NodeNumber>>(node_->left_expr)->num_tok.value);
+        else if (std::holds_alternative<node::NodeNumber>(node_->left_expr)) left_expr = std::get<std::unique_ptr<node::NodeNumber>>(node_->left_expr)->num_tok.value;
         else throw std::runtime_error("Unknown left expression type");
         if (std::holds_alternative<node::NodeBinOp>(node_->right_expr)) right_expr = evaluate_expression(std::get<std::unique_ptr<node::NodeBinOp>>(node_->right_expr));
-        else if (std::holds_alternative<node::NodeNumber>(node_->right_expr)) right_expr = std::to_string(std::get<std::unique_ptr<node::NodeNumber>>(node_->right_expr)->num_tok.value);
+        else if (std::holds_alternative<node::NodeNumber>(node_->right_expr)) right_expr = std::get<std::unique_ptr<node::NodeNumber>>(node_->right_expr)->num_tok.value;
         else throw std::runtime_error("Unknown right expression type");
         // applying binary operation
         if (node_->op.type == toktype::plus) {
