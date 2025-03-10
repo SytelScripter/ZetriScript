@@ -29,7 +29,7 @@ class ErrorSyntax {
 
     inline void display() {
         std::cout << "ERROR OCCURED AT [" << pos.x << ", " << pos.y << ", " << pos.z << "]\n:";
-        std::cout << "\t" << parser_arrows(pos.realStartPos.fileTxt, pos) << "\n";
+        std::cout << "\t" << parser_arrows(pos) << "\n";
         std::cout << "SYNTAX ERROR: ";
     }
 };
