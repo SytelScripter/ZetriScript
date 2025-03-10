@@ -48,8 +48,8 @@ class Token_ {
     Token_(TokenPosition posStart_, TokenPosition posEnd_, toktype type_) : posStart(posStart_), posEnd(posEnd_), type(type_), value("") { hasValue = false; }
     Token_(TokenPosition posStart_, TokenPosition posEnd_, toktype type_, std::string value_) : posStart(posStart_), posEnd(posEnd_), type(type_), value(value_) { hasValue = true; }
 
-    std::array<TokenPosition, TokenPosition> get_position() {
-        std::array<TokenPosition, TokenPosition> pos = {{posStart, posEnd}};
+    std::array<TokenPosition, 2> get_position() {
+        std::array<TokenPosition, 2> pos = {{posStart, posEnd}};
         return pos;
     }
 
