@@ -1,4 +1,5 @@
 #include "string_with_arrows.cpp"
+#include "token.cpp"
 
 enum class errortype {
     none = -1,
@@ -8,11 +9,11 @@ enum class errortype {
 
 class ErrorIllegalChar {
     private:
-    Token current_token;
+    Token_ current_token;
     std::string details;
 
     public:
-    ErrorIllegalChar(Token current_token_, std::string details_) : current_token(current_token_), details(details_) {}
+    ErrorIllegalChar(Token_ current_token_, std::string details_) : current_token(current_token_), details(details_) {}
 
     inline void display() {
         std::cout << "ILLEGAL CHARACTER: " << details << " AT LINE: " << current_token.line << " COLUMN: " << current_token.column << "\n";
