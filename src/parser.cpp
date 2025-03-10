@@ -16,21 +16,21 @@ namespace node {
 
     struct NodeBinOp {
         std::variant<std::unique_ptr<NodeNumber>, std::unique_ptr<NodeBinOp>> left_expr;
-        Token op;
+        Token_ op;
         std::variant<std::unique_ptr<NodeNumber>, std::unique_ptr<NodeBinOp>> right_expr;
     };
 
     struct NodeExec {
-        std::variant<Token, std::unique_ptr<NodeClassBuiltIn>> executed;
+        std::variant<Token_, std::unique_ptr<NodeClassBuiltIn>> executed;
     };
 
     struct NodeClassBuiltIn {
-        Token class_name;
+        Token_ class_name;
         std::vector<std::unique_ptr<ParsePosition>, std::unique_ptr<NodeBinOp>, std::unique_ptr<NodeNumber>> args;
     };
 
     struct NodeVarAssign {
-        Token var_name_tok;
+        Token_ var_name_tok;
         std::variant<std::unique_ptr<NodeExec>, std::unique_ptr<NodeClassBuiltIn>, std::unique_ptr<NodeBinOp>, std::unique_ptr<NodeNumber>> value;
     };
 
@@ -51,11 +51,11 @@ using anyNode = std::variant<std::unique_ptr<node::NodeNumber>, std::unique_ptr<
 
 class Parser {
 public:
-    inline explicit Parser(std::vector<Token> tokens) : 
+    inline explicit Parser(std::vector<Token_> tokens) : 
         tokens_(std::move(tokens)) {}
 
     std::unique_ptr<NodeNumber> parse_factor() {
-        Token value = tokens_[idx_++];
+        Token_ value = tokens_[idx_++];
         return std::make_unique<node::NodeNumber>(value);
     }
 
@@ -67,7 +67,7 @@ public:
             result->left_expr = node;
         }
         while (idx_ < tokens_.size() && (is_token_type(toktype::star) || is_token_type(toktype::slash))) {
-            Token op = tokens_[idx_++];
+            Token_ op = tokens_[idx_++];
             std::unique_ptr<NodeNumber> right_expr = parse_factor();
             result = std::make_unique<node::NodeBinOp>(std::move(result), op, std::move(right_expr));
         }
@@ -78,7 +78,7 @@ public:
         // create the binary operation node
         auto left_expr = parse_term();
         while (idx_ < tokens_.size() && is_token_type(toktype::plus) || is_token_type(toktype::minus)) {
-            Token op = tokens_[idx_++];
+            Token_ op = tokens_[idx_++];
             auto right_expr = parse_term();
             left_expr = std::make_unique<node::NodeBinOp>(std::move(left_expr), op, std::move(right_expr));
         }
@@ -89,7 +89,7 @@ public:
         // create the execution node
         // parsing expression
         if (is_token_type(toktype::name)) {
-            Token name = tokens_[idx_++];
+            Token_ name = tokens_[idx_++];
             error(toktype::exc_mark, "!", "Expected '!'");
             return std::make_unique<node::NodeExec>(name);
         }
@@ -99,7 +99,7 @@ public:
             return std::make_unique<node::NodeExec>(result);
         }
         else if (is_token_type(toktype::keyword)) {
-            Token goto_token = tokens_[idx_++];
+            Token_ goto_token = tokens_[idx_++];
             error(toktype::exc_mark, "!", "Expected '!'");
             return std::make_unique<node::NodeExec>(goto_token);
         }
@@ -111,7 +111,7 @@ public:
     std::unique_ptr<NodeVarAssign> parse_var_assign() {
         // create the variable assignment node
         // parsing variable name
-        Token var_name = error_type(toktype::identifier, "Expected identifier", true);
+        Token_ var_name = error_type(toktype::identifier, "Expected identifier", true);
         error(toktype::equal, "=", "Expected '='");
         // parsing expression
         std::unique_ptr<NodeBinOp> expr = parse_expr();
@@ -121,7 +121,7 @@ public:
     std::unique_ptr<NodeClassBuiltIn> parse_class_builtin() {
         // create the class built-in node (calling built-in classes)
         // parsing class name
-        Token class_name = error_type(toktype::keyword, "Expected keyword", true);
+        Token_ class_name = error_type(toktype::keyword, "Expected keyword", true);
         error(toktype::left_paren, "(", "Expected '('");
         // parsing class arguments
         std::vector<ParsePosition, node::NodeExpr> args;
@@ -251,10 +251,10 @@ public:
     }
 
 private:
-    const std::vector<Token> tokens_;
+    const std::vector<Token_> tokens_;
     size_t idx_ = 0;
     ParsePosition current_pos_;
-    Token current_token_;
+    Token_ current_token_;
     ErrorSyntax current_error_;
 
     inline void next_token() {
@@ -262,11 +262,11 @@ private:
             current_token_ = tokens_[idx_];
             idx_++;
         } else {
-            current_token_ = Token(current_pos_, current_pos_, toktype::eof_);
+            current_token_ = Token_(current_pos_, current_pos_, toktype::eof_);
         }
     }
 
-    inline std::optional<Token> peek(toktype type) {
+    inline std::optional<Token_> peek(toktype type) {
         if (idx_ < tokens_.size() && tokens_[idx_].type == type) {
             return tokens_[idx_];
         }
@@ -293,13 +293,13 @@ private:
         next_token();
     }
 
-    inline std::optional<Token> error_type(toktype type, const std::string &msg, bool getTok=false) {
+    inline std::optional<Token_> error_type(toktype type, const std::string &msg, bool getTok=false) {
         if (!is_token_type(type)) {
             current_error_ = ErrorSyntax(current_pos_, msg);
             stop_parse();
         }
         if (getTok) {
-            Token tok = current_token_;
+            Token_ tok = current_token_;
             next_token();
             return tok;
         }
