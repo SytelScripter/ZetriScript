@@ -1,6 +1,17 @@
 #include <iostream>
 #include "position.cpp"
 
+
+namespace pre_str {
+    std::string repeat(const std::string& str, int count) {
+        std::string result = "";
+        for (int i = 0; i < count; i++) {
+            result += str;
+        }
+        return result;
+    }
+}
+
 inline std::string token_arrows(std::string str, TokenPosition start, TokenPosition end) {
     int line = 0;
     int col = 0;
@@ -35,7 +46,7 @@ inline std::string token_arrows(std::string str, TokenPosition start, TokenPosit
             }
             result += str.substr(start_line_idx, next_line_idx - start_line_idx);
             result += "\n";
-            result += " ".repeat(start.col - 1) + "^".repeat(end.col - start.col) + "\n";
+            result += pre_str::repeat(" ", start.col - 1) + pre_str::repeat("^", end.col - start.col) + "\n";
             break;
         }
         if (line == start.line && end.line != start.line) {
@@ -45,7 +56,7 @@ inline std::string token_arrows(std::string str, TokenPosition start, TokenPosit
             }
             result += str.substr(start_line_idx, next_line_idx - start_line_idx);
             result += "\n";
-            result += " ".repeat(start.col - 1) + "^".repeat(next_line_idx - start_line_idx) + "\n";
+            result += pre_str::repeat(" ", start.col - 1) + "^".repeat(next_line_idx - start_line_idx) + "\n";
             i += next_line_idx - start_line_idx;
         }
         else if (line > start.line && line < end.line && col == 0) {
