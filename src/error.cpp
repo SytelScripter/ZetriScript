@@ -16,7 +16,7 @@ class ErrorIllegalChar {
     ErrorIllegalChar(Token_ current_token_, std::string details_) : current_token(current_token_), details(details_) {}
 
     inline void display() {
-        std::cout << "ILLEGAL CHARACTER: " << details << " AT LINE: " << current_token.line << " COLUMN: " << current_token.column << "\n";
+        std::cout << "ILLEGAL CHARACTER: " << details << " AT LINE: " << current_token.line << " COLUMN: " << current_token.col << "\n";
     }
 };
 
