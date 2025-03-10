@@ -56,7 +56,7 @@ inline std::string token_arrows(std::string str, TokenPosition start, TokenPosit
             }
             result += str.substr(start_line_idx, next_line_idx - start_line_idx);
             result += "\n";
-            result += pre_str::repeat(" ", start.col - 1) + "^".repeat(next_line_idx - start_line_idx) + "\n";
+            result += pre_str::repeat(" ", start.col - 1) + pre_str::repeat("^", next_line_idx - start_line_idx) + "\n";
             i += next_line_idx - start_line_idx;
         }
         else if (line > start.line && line < end.line && col == 0) {
@@ -66,7 +66,7 @@ inline std::string token_arrows(std::string str, TokenPosition start, TokenPosit
             }
             result += str.substr(start_line_idx, next_line_idx - start_line_idx);
             result += "\n";
-            result += "^".repeat(next_line_idx - start_line_idx) + "\n";
+            result += pre_str::repeat("^", next_line_idx - start_line_idx) + "\n";
             i += next_line_idx - start_line_idx;
         }
         else if (line == end.line && line != start.line) {
@@ -77,7 +77,7 @@ inline std::string token_arrows(std::string str, TokenPosition start, TokenPosit
             int end_idx = start_line_idx + end.col;
             result += str.substr(start_line_idx, next_line_idx - start_line_idx);
             result += "\n";
-            result += "^".repeat(end_idx - start_line_idx) + "\n";
+            result += pre_str::repeat("^", end_idx - start_line_idx) + "\n";
             break;
         }
         i++;
