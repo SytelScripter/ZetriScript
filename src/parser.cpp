@@ -56,7 +56,9 @@ public:
 
     std::unique_ptr<NodeNumber> parse_factor() {
         Token_ value = tokens_[idx_++];
-        return std::make_unique<node::NodeNumber>(value);
+        std::unique_ptr<NodeNumber> result = std::make_unique<node::NodeNumber>();
+        result->value = value;
+        return result;
     }
 
     std::variant<std::unique_ptr<NodeNumber>, std::unique_ptr<NodeBinOp>> parse_term() {
@@ -88,39 +90,45 @@ public:
     std::unique_ptr<NodeExec> parse_exec() {
         // create the execution node
         // parsing expression
+        std::unique_ptr<NodeExec> result;
         if (is_token_type(toktype::name)) {
             Token_ name = tokens_[idx_++];
             error(toktype::exc_mark, "!", "Expected '!'");
-            return std::make_unique<node::NodeExec>(name);
+            result->executed = name;
+            return result;
         }
         else if (is_token_type(toktype::keyword) && tokens_[idx_ + 1].type == toktype::left_paren) {
-            std::unique_ptr<NodeClassBuiltIn> result = parse_class_builtin();
+            std::unique_ptr<NodeClassBuiltIn> result_ = parse_class_builtin();
             error(toktype::exc_mark, "!", "Expected '!'");
-            return std::make_unique<node::NodeExec>(result);
+            result->executed = result_;
+            return result;
         }
         else if (is_token_type(toktype::keyword)) {
             Token_ goto_token = tokens_[idx_++];
             error(toktype::exc_mark, "!", "Expected '!'");
-            return std::make_unique<node::NodeExec>(goto_token);
+            result->executed = goto_token;
+            return result;
         }
-        
-        std::unique_ptr<NodeBinOp> expr = parse_expr();
-        return std::make_unique<node::NodeExec>(expr);
+        throw std::runtime_error("Expected class built-in, goto, or expression");
     }
 
     std::unique_ptr<NodeVarAssign> parse_var_assign() {
         // create the variable assignment node
         // parsing variable name
+        std::unique_ptr<NodeVarAssign> result = std::make_unique<node::NodeVarAssign>();
         Token_ var_name = error_type(toktype::identifier, "Expected identifier", true);
         error(toktype::equal, "=", "Expected '='");
         // parsing expression
         std::unique_ptr<NodeBinOp> expr = parse_expr();
-        return std::make_unique<node::NodeVarAssign>(var_name, expr);
+        result->var_name_tok = var_name;
+        result->value = expr;
+        return result;
     }
 
     std::unique_ptr<NodeClassBuiltIn> parse_class_builtin() {
         // create the class built-in node (calling built-in classes)
         // parsing class name
+        std::unique_ptr<node::NodeClassBuiltIn> result = std::make_unique<node::NodeClassBuiltIn>();
         Token_ class_name = error_type(toktype::keyword, "Expected keyword", true);
         error(toktype::left_paren, "(", "Expected '('");
         // parsing class arguments
@@ -131,7 +139,9 @@ public:
                 error(toktype::right_paren, ")", "Expected ',' or ')'"); // automatically skips comma
         }
         error(toktype::right_paren, ")", "Expected ')'");
-        return std::make_unique<node::NodeClassBuiltIn>(class_name, args);
+        result->class_name = class_name;
+        result->args = args;
+        return result;
     }
 
     std::unique_ptr<NodeStmt> parse_statement() {
