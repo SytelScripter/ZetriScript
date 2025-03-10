@@ -24,7 +24,7 @@ class ErrorSyntax {
     ParsePosition pos;
     std::string details;
 
-    public:_
+    public:
     ErrorSyntax(ParsePosition pos_, const std::string &details_) : pos(pos_), details(details_) {}
 
     inline void display() {
