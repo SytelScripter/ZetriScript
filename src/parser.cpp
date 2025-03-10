@@ -283,11 +283,11 @@ private:
         return std::nullopt;
     }
 
-    inline boolean is_token_type(toktype type) {
+    inline bool is_token_type(toktype type) {
         return current_token_.type == type;
     }
 
-    inline boolean is_token(toktype type, const std::string &token) {
+    inline bool is_token(toktype type, const std::string &token) {
         return current_token_.type == type && current_token_.value == token;
     }
 
