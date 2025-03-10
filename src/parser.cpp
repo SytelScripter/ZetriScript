@@ -201,9 +201,7 @@ public:
         It should be implemented according to the ZetriScript syntax and semantics.
         For example, it could create a Position object, parse expressions, and return the result.
         */
-        ParseResult result;
         // parsing position access node
-        const ParsePosition entry = ParsePosition(current_pos_);
         current_pos_ = ParsePosition(specialpos::POS_DECL);
         error(toktype::left_square, "[", "Expected '['");
         // parsing expressions
