@@ -75,7 +75,6 @@ public:
             Token_ result = Token_(posStart, posEnd, toktype::keyword, text);
             return result;
         }
-        TokenPosition posEnd = TokenPosition(idx - 1);
         Token_ result = Token_(posStart, posEnd, toktype::name, text);
         return result;
     }
