@@ -5,15 +5,15 @@
 #include <functional>
 
 namespace node {
-    struct NodeNumber {};
-    struct NodeBinOp {};
-    struct NodeExec {};
-    struct NodeClassBuiltIn {};
-    struct NodeVarAssign {};
-    struct NodeVarAccess {};
-    struct NodePosAccess {};
-    struct NodeStmt {};
-    struct NodeProgram {};
+    struct NodeNumber;
+    struct NodeBinOp;
+    struct NodeExec;
+    struct NodeClassBuiltIn;
+    struct NodeVarAssign;
+    struct NodeVarAccess;
+    struct NodePosAccess;
+    struct NodeStmt;
+    struct NodeProgram;
 
     struct NodeNumber {
         Token_ num_tok;
