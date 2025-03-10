@@ -92,12 +92,11 @@ public:
             num_str += currentChar;
             advance();
         }
-        TokenPosition posEnd = TokenPosition(idx);
+        TokenPosition posEnd = TokenPosition(idx - 1);
         if (dot_count == 0) {
             Token_ result = Token_(posStart, posEnd, toktype::int_lit, num_str);
             return result;
         }
-        TokenPosition posEnd = TokenPosition(idx - 1);
         Token_ result = Token_(posStart, posEnd, toktype::float_lit, num_str);
         return result;
     }
