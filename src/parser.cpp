@@ -72,7 +72,10 @@ public:
         while (idx_ < tokens_.size() && (is_token_type(toktype::star) || is_token_type(toktype::slash))) {
             Token_ op = tokens_[idx_++];
             std::unique_ptr<NodeNumber> right_expr = parse_factor();
-            result = std::make_unique<node::NodeBinOp>(std::move(result), op, std::move(right_expr));
+            std::unique_ptr<NodeBinOp> result_ = std::make_unique<node::NodeBinOp>();
+            result_->left_expr = std::move(result);
+            result_->op = op;
+            result_->right_expr = std::move(right_expr);
         }
         return node;
     }
@@ -83,7 +86,11 @@ public:
         while (idx_ < tokens_.size() && is_token_type(toktype::plus) || is_token_type(toktype::minus)) {
             Token_ op = tokens_[idx_++];
             auto right_expr = parse_term();
-            left_expr = std::make_unique<node::NodeBinOp>(std::move(left_expr), op, std::move(right_expr));
+            std::unique_ptr<NodeBinOp> temp_ = std::make_unique<node::NodeBinOp>();
+            temp_->left_expr = std::move(left_expr);
+            temp_->op = op;
+            temp_->right_expr = std::move(right_expr);
+            left_expr = std::move(temp_);
         }
         return left_expr;
     }
