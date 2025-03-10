@@ -1,4 +1,5 @@
 #include <memory>
+#include <variant>
 #include "lexer.cpp"
 #include "error.cpp"
 #include <functional>
@@ -223,7 +224,7 @@ public:
         current_pos_ = ParsePosition(num1, num2, num3);
     }
 
-    std::string evaluate_expression(NodeBinOp node) {
+    std::string evaluate_expression(std::unique_ptr<NodeBinOp> node) {
         /*
         A little part of an interpreter for binary operation node
         This part of code is for demonstration purposes and doesn't include actual interpreter logic
@@ -234,11 +235,11 @@ public:
         */
         // parsing binary operation node
         std::string left_expr, right_expr;
-        if (std::holds_alternative<NodeBinOp>(node.left_expr)) left_expr = evaluate_expression(std::get<NodeBinOp>(node.left_expr));
-        else if (std::holds_alternative<NodeNumber>(node.left_expr)) left_expr = std::to_string(std::get<NodeNumber>(node.left_expr).value);
+        if (std::holds_alternative<NodeBinOp>(node->left_expr)) left_expr = evaluate_expression(std::get<NodeBinOp>(node->left_expr));
+        else if (std::holds_alternative<NodeNumber>(node->left_expr)) left_expr = std::to_string(std::get<NodeNumber>(node->left_expr).value);
         else throw std::runtime_error("Unknown left expression type");
-        if (std::holds_alternative<NodeBinOp>(node.right_expr)) right_expr = evaluate_expression(std::get<NodeBinOp>(node.right_expr));
-        else if (std::holds_alternative<NodeNumber>(node.right_expr)) right_expr = std::to_string(std::get<NodeNumber>(node.right_expr).value);
+        if (std::holds_alternative<NodeBinOp>(node->right_expr)) right_expr = evaluate_expression(std::get<NodeBinOp>(node->right_expr));
+        else if (std::holds_alternative<NodeNumber>(node->right_expr)) right_expr = std::to_string(std::get<NodeNumber>(node->right_expr).value);
         else throw std::runtime_error("Unknown right expression type");
         // applying binary operation
         if (node->op.type == toktype::plus) {
@@ -247,12 +248,12 @@ public:
         else if (node->op.type == toktype::minus) {
             return std::to_string(std::stoi(left_expr) - std::stoi(right_expr));
         }
-        else if (node->op.type == toktype::mult) {
+        else if (node->op.type == toktype::mul) {
             return std::to_string(std::stoi(left_expr) * std::stoi(right_expr));
         }
         else if (node->op.type == toktype::div) {
             if (std::stoi(right_expr) == 0) {
-                error(current_token_.pos, toktype::div, "Division by zero");
+                error(current_pos_, toktype::div, "Division by zero");
                 stop_parse();
             }
             return std::to_string(std::stoi(left_expr) / std::stoi(right_expr));
@@ -272,7 +273,7 @@ private:
             current_token_ = tokens_[idx_];
             idx_++;
         } else {
-            current_token_ = Token_(current_pos_, current_pos_, toktype::eof_);
+            current_token_ = Token_(current_pos_.realStartPos, current_pos_.realEndPos, toktype::eof_);
         }
     }
 
