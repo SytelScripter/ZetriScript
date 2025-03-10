@@ -203,11 +203,11 @@ public:
         current_pos_ = ParsePosition(specialpos::POS_DECL);
         error(toktype::left_square, "[", "Expected '['");
         // parsing expressions
-        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr1 = expr();
+        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr1 = parse_expr();
         error(toktype::colon, ":", "Expected ':'");
-        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr2 = expr();
+        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr2 = parse_expr();
         error(toktype::colon, ":", "Expected ':'");
-        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr3 = expr();
+        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr3 = parse_expr();
         error(toktype::colon, ":", "Expected ':'");
         error(toktype::right_square, "]", "Expected ']'");
         // visiting binary operation nodes
