@@ -16,7 +16,7 @@ namespace node {
     struct NodeProgram {};
 
     struct NodeNumber {
-        Token num_tok;
+        Token_ num_tok;
     };
 
     struct NodeBinOp {
