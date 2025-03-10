@@ -9,11 +9,11 @@ enum class errortype {
 
 class ErrorIllegalChar {
     private:
-    Token_ current_token;
+    TokenPosition current_token;
     std::string details;
 
     public:
-    ErrorIllegalChar(Token_ current_token_, std::string details_) : current_token(current_token_), details(details_) {}
+    ErrorIllegalChar(TokenPosition current_token_, std::string details_) : current_token(current_token_), details(details_) {}
 
     inline void display() {
         std::cout << "ILLEGAL CHARACTER: " << details << " AT LINE: " << current_token.line << " COLUMN: " << current_token.col << "\n";
