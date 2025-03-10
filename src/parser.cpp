@@ -207,14 +207,13 @@ public:
         */
         // parsing position access node
         current_pos_ = ParsePosition(specialpos::POS_DECL);
+        // parsing expression
         error(toktype::left_square, "[", "Expected '['");
-        // parsing expressions
         std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr1 = parse_expr();
         error(toktype::colon, ":", "Expected ':'");
         std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr2 = parse_expr();
         error(toktype::colon, ":", "Expected ':'");
         std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr3 = parse_expr();
-        error(toktype::colon, ":", "Expected ':'");
         error(toktype::right_square, "]", "Expected ']'");
         // visiting binary operation nodes
         std::string num1, num2, num3;
@@ -237,7 +236,7 @@ public:
         current_pos_ = ParsePosition(num1, num2, num3);
     }
 
-    std::string evaluate_expression(std::unique_ptr<node::NodeBinOp> node) {
+    std::string evaluate_expression(std::unique_ptr<node::NodeBinOp> node_) {
         /*
         A little part of an interpreter for binary operation node
         This part of code is for demonstration purposes and doesn't include actual interpreter logic
@@ -248,23 +247,23 @@ public:
         */
         // parsing binary operation node
         std::string left_expr, right_expr;
-        if (std::holds_alternative<node::NodeBinOp>(node->left_expr)) left_expr = evaluate_expression(std::get<node::NodeBinOp>(node->left_expr));
-        else if (std::holds_alternative<node::NodeNumber>(node->left_expr)) left_expr = std::to_string(std::get<node::NodeNumber>(node->left_expr).value);
+        if (std::holds_alternative<node::NodeBinOp>(node_->left_expr)) left_expr = evaluate_expression(std::get<node::NodeBinOp>(node_->left_expr));
+        else if (std::holds_alternative<node::NodeNumber>(node_->left_expr)) left_expr = std::to_string(std::get<node::NodeNumber>(node_->left_expr).value);
         else throw std::runtime_error("Unknown left expression type");
-        if (std::holds_alternative<node::NodeBinOp>(node->right_expr)) right_expr = evaluate_expression(std::get<node::NodeBinOp>(node->right_expr));
-        else if (std::holds_alternative<node::NodeNumber>(node->right_expr)) right_expr = std::to_string(std::get<node::NodeNumber>(node->right_expr).value);
+        if (std::holds_alternative<node::NodeBinOp>(node_->right_expr)) right_expr = evaluate_expression(std::get<node::NodeBinOp>(node_->right_expr));
+        else if (std::holds_alternative<node::NodeNumber>(node_->right_expr)) right_expr = std::to_string(std::get<node::NodeNumber>(node_->right_expr).value);
         else throw std::runtime_error("Unknown right expression type");
         // applying binary operation
-        if (node->op.type == toktype::plus) {
+        if (node_->op.type == toktype::plus) {
             return std::to_string(std::stoi(left_expr) + std::stoi(right_expr));
         }
-        else if (node->op.type == toktype::minus) {
+        else if (node_->op.type == toktype::minus) {
             return std::to_string(std::stoi(left_expr) - std::stoi(right_expr));
         }
-        else if (node->op.type == toktype::mul) {
+        else if (node_->op.type == toktype::mul) {
             return std::to_string(std::stoi(left_expr) * std::stoi(right_expr));
         }
-        else if (node->op.type == toktype::div) {
+        else if (node_->op.type == toktype::div) {
             if (std::stoi(right_expr) == 0) {
                 throw std::runtime_error("PARSER: Division by zero");
                 stop_parse();
