@@ -27,7 +27,7 @@ class ParsePosition {
     ParsePosition(specialpos specialPos_) : specialPos(specialPos_) {}
     ParsePosition(std::string xPos_, std::string yPos_, std::string zPos_) : x(xPos_), y(yPos_), z(zPos_) {}
 
-    boolean isSpecial() {
+    bool isSpecial() {
         if (!empty(x) && !empty(y) && !empty(z_)) {
             return false;
         }
