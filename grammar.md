@@ -1,6 +1,6 @@
 $$
 \begin{align}
-\text{PROGRAM} &\to \text{POS\_ASSIGN}\space\text{STMT} \\
+\text{PROGRAM} &\to \text{POS\_ACCESS}\space\text{STMT} \\
 \text{STMT} &\to \text{POS\_ACCESS}:
     \begin{cases}
         \text{CLASSBUILTIN} \\
@@ -12,7 +12,8 @@ $$
 \text{CLASSBUILTIN} &\to \text{KEYWORD}(
     \begin{cases}
         \text{POS\_ACCESS} \\
-        \text{EXPR}
+        \text{EXPR} \\
+        \text{VAR\_ACCESS} \\
     \end{cases}
     ); \\
 \text{VAR\_ASSIGN} &\to \text{IDENTIFIER} = 
