@@ -42,22 +42,22 @@ public:
             else if (std::isdigit(currentChar)) {
                 tokens.push_back(makeNumber());
             }
-            else if (currentChar == '{') addToken_(toktype::left_curly, "{");
-            else if (currentChar == '}') addToken_(toktype::right_curly, "}");
-            else if (currentChar == '[') addToken_(toktype::left_square, "[");
-            else if (currentChar == ']') addToken_(toktype::right_square, "]");
-            else if (currentChar == '+') addToken_(toktype::plus, "+");
-            else if (currentChar == '-') addToken_(toktype::minus, "-");
-            else if (currentChar == '*') addToken_(toktype::mul, "*");
-            else if (currentChar == '/') addToken_(toktype::div, "/");
-            else if (currentChar == '(') addToken_(toktype::left_paren, "(");
-            else if (currentChar == ')') addToken_(toktype::right_paren, ")");
-            else if (currentChar == ':') addToken_(toktype::colon, ":");
-            else if (currentChar == ';') addToken_(toktype::semicolon, ";");
-            else if (currentChar == '=') addToken_(toktype::equals, "=");
-            else if (currentChar == '!') addToken_(toktype::exc_mark, "!");
-            else if (currentChar == ',') addToken_(toktype::comma, ",");
-            else if (currentChar == '.') addToken_(toktype::dot, ".");
+            else if (currentChar == '{') addToken_(toktype::left_curly, std::string("{"));
+            else if (currentChar == '}') addToken_(toktype::right_curly, std::string("}"));
+            else if (currentChar == '[') addToken_(toktype::left_square, std::string("["));
+            else if (currentChar == ']') addToken_(toktype::right_square, std::string("]"));
+            else if (currentChar == '+') addToken_(toktype::plus, std::string("+"));
+            else if (currentChar == '-') addToken_(toktype::minus, std::string("-"));
+            else if (currentChar == '*') addToken_(toktype::mul, std::string("*"));
+            else if (currentChar == '/') addToken_(toktype::div, std::string("/"));
+            else if (currentChar == '(') addToken_(toktype::left_paren, std::string("("));
+            else if (currentChar == ')') addToken_(toktype::right_paren, std::string(")"));
+            else if (currentChar == ':') addToken_(toktype::colon, std::string(":"));
+            else if (currentChar == ';') addToken_(toktype::semicolon, std::string(";"));
+            else if (currentChar == '=') addToken_(toktype::equals, std::string("="));
+            else if (currentChar == '!') addToken_(toktype::exc_mark, std::string("!"));
+            else if (currentChar == ',') addToken_(toktype::comma, std::string(","));
+            else if (currentChar == '.') addToken_(toktype::dot, std::string("."));
         }
 
         return tokens;
