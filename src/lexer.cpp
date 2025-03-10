@@ -17,10 +17,11 @@ private:
     }
 
     inline void addToken_(toktype type_, char value_) {
+        std::string value = std::string(1, value_);
         TokenPosition posStart = TokenPosition(idx);
         advance();
         TokenPosition posEnd = TokenPosition(idx - 1);
-        Token_ result = Token_(posStart, posEnd, type_, value_);
+        Token_ result = Token_(posStart, posEnd, type_, value);
         tokens.push_back(result);
     }
 
