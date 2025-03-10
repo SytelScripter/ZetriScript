@@ -70,8 +70,9 @@ public:
             text += currentChar;
             advance();
         }
+        TokenPosition posEnd = TokenPosition(idx - 1);
         if (std::find(keywords_list.begin(), keywords_list.end(), text) != keywords_list.end()) {
-            Token_ result = Token_(toktype::keyword, text);
+            Token_ result = Token_(posStart, posEnd, toktype::keyword, text);
             return result;
         }
         TokenPosition posEnd = TokenPosition(idx - 1);
