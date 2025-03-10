@@ -8,12 +8,12 @@ enum specialpos {
 
 class TokenPosition {
     public:
-    std::string line = 0;
-    std::string col = 0;
+    int line = 0;
+    int col = 0;
     std::string fileTxt = "";
 
     TokenPosition(int x = 0) {}
-    TokenPosition(std::string fileTxt_, std::string col_, std::string line_) : fileTxt(fileTxt_), col(col_), line(line_) {}
+    TokenPosition(std::string fileTxt_, int col_, int line_) : fileTxt(fileTxt_), col(col_), line(line_) {}
 };
 
 class ParsePosition {
