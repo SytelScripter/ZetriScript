@@ -42,7 +42,7 @@ class Token_ {
     toktype type;
     std::string value;
     TokenPosition posStart, posEnd;
-    boolean hasValue;
+    bool hasValue;
 
     Token_() : type(toktype::none), value("") {}
     Token_(TokenPosition posStart_, TokenPosition posEnd_, toktype type_) : posStart(posStart_), posEnd(posEnd_), type(type_), value("") { hasValue = false; }
