@@ -55,24 +55,24 @@ public:
     inline explicit Parser(std::vector<Token_> tokens) : 
         tokens_(std::move(tokens)) {}
 
-    std::unique_ptr<NodeNumber> parse_factor() {
+    std::unique_ptr<node::NodeNumber> parse_factor() {
         Token_ value = tokens_[idx_++];
-        std::unique_ptr<NodeNumber> result = std::make_unique<node::NodeNumber>();
+        std::unique_ptr<node::NodeNumber> result = std::make_unique<node::NodeNumber>();
         result->value = value;
         return result;
     }
 
-    std::variant<std::unique_ptr<NodeNumber>, std::unique_ptr<NodeBinOp>> parse_term() {
+    std::variant<std::unique_ptr<node::NodeNumber>, std::unique_ptr<node::NodeBinOp>> parse_term() {
         // create the term node
-        std::unique_ptr<NodeBinOp> result;
-        std::unique_ptr<NodeNumber> node = parse_factor();
+        std::unique_ptr<node::NodeBinOp> result;
+        std::unique_ptr<node::NodeNumber> node = parse_factor();
         if (is_token_type(toktype::mul) || is_token_type(toktype::div)) {
             result->left_expr = node;
         }
         while (idx_ < tokens_.size() && (is_token_type(toktype::star) || is_token_type(toktype::slash))) {
             Token_ op = tokens_[idx_++];
-            std::unique_ptr<NodeNumber> right_expr = parse_factor();
-            std::unique_ptr<NodeBinOp> result_ = std::make_unique<node::NodeBinOp>();
+            std::unique_ptr<node::NodeNumber> right_expr = parse_factor();
+            std::unique_ptr<node::NodeBinOp> result_ = std::make_unique<node::node::NodeBinOp>();
             result_->left_expr = std::move(result);
             result_->op = op;
             result_->right_expr = std::move(right_expr);
@@ -80,13 +80,13 @@ public:
         return node;
     }
 
-    std::variant<std::unique_ptr<NodeNumber>, std::unique_ptr<NodeBinOp>> parse_expr() {
+    std::variant<std::unique_ptr<node::NodeNumber>, std::unique_ptr<node::NodeBinOp>> parse_expr() {
         // create the binary operation node
         auto left_expr = parse_term();
         while (idx_ < tokens_.size() && is_token_type(toktype::plus) || is_token_type(toktype::minus)) {
             Token_ op = tokens_[idx_++];
             auto right_expr = parse_term();
-            std::unique_ptr<NodeBinOp> temp_ = std::make_unique<node::NodeBinOp>();
+            std::unique_ptr<node::NodeBinOp> temp_ = std::make_unique<node::node::NodeBinOp>();
             temp_->left_expr = std::move(left_expr);
             temp_->op = op;
             temp_->right_expr = std::move(right_expr);
@@ -127,7 +127,7 @@ public:
         Token_ var_name = error_type(toktype::identifier, "Expected identifier", true);
         error(toktype::equal, "=", "Expected '='");
         // parsing expression
-        std::unique_ptr<NodeBinOp> expr = parse_expr();
+        std::unique_ptr<node::NodeBinOp> expr = parse_expr();
         result->var_name_tok = var_name;
         result->value = expr;
         return result;
@@ -203,35 +203,35 @@ public:
         current_pos_ = ParsePosition(specialpos::POS_DECL);
         error(toktype::left_square, "[", "Expected '['");
         // parsing expressions
-        std::variant<std::unique_ptr<NodeBinOp>, std::unique_ptr<NodeNumber>> expr1 = expr();
+        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr1 = expr();
         error(toktype::colon, ":", "Expected ':'");
-        std::variant<std::unique_ptr<NodeBinOp>, std::unique_ptr<NodeNumber>> expr2 = expr();
+        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr2 = expr();
         error(toktype::colon, ":", "Expected ':'");
-        std::variant<std::unique_ptr<NodeBinOp>, std::unique_ptr<NodeNumber>> expr3 = expr();
+        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr3 = expr();
         error(toktype::colon, ":", "Expected ':'");
         error(toktype::right_square, "]", "Expected ']'");
         // visiting binary operation nodes
         std::string num1, num2, num3;
 
-        if (std::holds_alternative<std::unique_ptr<NodeBinOp>>(expr1)) {
-            NodeBinOp binop1 = std::get<std::unique_ptr<NodeBinOp>>(expr1);
+        if (std::holds_alternative<std::unique_ptr<node::NodeBinOp>>(expr1)) {
+            node::NodeBinOp binop1 = std::get<std::unique_ptr<node::NodeBinOp>>(expr1);
             num1 = evaluate_expression(binop1);
-        } else num1 = std::to_string(std::get<std::unique_ptr<NodeNumber>>(expr1).value);
+        } else num1 = std::to_string(std::get<std::unique_ptr<node::NodeNumber>>(expr1).value);
         
-        if (std::holds_alternative<std::unique_ptr<NodeBinOp>>(expr2)) {
-            NodeBinOp binop2 = std::get<std::unique_ptr<NodeBinOp>>(expr2);
+        if (std::holds_alternative<std::unique_ptr<node::NodeBinOp>>(expr2)) {
+            node::NodeBinOp binop2 = std::get<std::unique_ptr<node::NodeBinOp>>(expr2);
             num2 = evaluate_expression(binop2);
-        } else num2 = std::to_string(std::get<std::unique_ptr<NodeNumber>>(expr2).value);
+        } else num2 = std::to_string(std::get<std::unique_ptr<node::NodeNumber>>(expr2).value);
         
-        if (std::holds_alternative<std::unique_ptr<NodeBinOp>>(expr3)) {
-            NodeBinOp binop3 = std::get<std::unique_ptr<NodeBinOp>>(expr3);
+        if (std::holds_alternative<std::unique_ptr<node::NodeBinOp>>(expr3)) {
+            node::NodeBinOp binop3 = std::get<std::unique_ptr<node::NodeBinOp>>(expr3);
             num3 = evaluate_expression(binop3);
-        } else num3 = std::to_string(std::get<std::unique_ptr<NodeNumber>>(expr3).value);
+        } else num3 = std::to_string(std::get<std::unique_ptr<node::NodeNumber>>(expr3).value);
 
         current_pos_ = ParsePosition(num1, num2, num3);
     }
 
-    std::string evaluate_expression(std::unique_ptr<NodeBinOp> node) {
+    std::string evaluate_expression(std::unique_ptr<node::NodeBinOp> node) {
         /*
         A little part of an interpreter for binary operation node
         This part of code is for demonstration purposes and doesn't include actual interpreter logic
@@ -242,11 +242,11 @@ public:
         */
         // parsing binary operation node
         std::string left_expr, right_expr;
-        if (std::holds_alternative<NodeBinOp>(node->left_expr)) left_expr = evaluate_expression(std::get<NodeBinOp>(node->left_expr));
-        else if (std::holds_alternative<NodeNumber>(node->left_expr)) left_expr = std::to_string(std::get<NodeNumber>(node->left_expr).value);
+        if (std::holds_alternative<node::NodeBinOp>(node->left_expr)) left_expr = evaluate_expression(std::get<node::NodeBinOp>(node->left_expr));
+        else if (std::holds_alternative<node::NodeNumber>(node->left_expr)) left_expr = std::to_string(std::get<node::NodeNumber>(node->left_expr).value);
         else throw std::runtime_error("Unknown left expression type");
-        if (std::holds_alternative<NodeBinOp>(node->right_expr)) right_expr = evaluate_expression(std::get<NodeBinOp>(node->right_expr));
-        else if (std::holds_alternative<NodeNumber>(node->right_expr)) right_expr = std::to_string(std::get<NodeNumber>(node->right_expr).value);
+        if (std::holds_alternative<node::NodeBinOp>(node->right_expr)) right_expr = evaluate_expression(std::get<node::NodeBinOp>(node->right_expr));
+        else if (std::holds_alternative<node::NodeNumber>(node->right_expr)) right_expr = std::to_string(std::get<node::NodeNumber>(node->right_expr).value);
         else throw std::runtime_error("Unknown right expression type");
         // applying binary operation
         if (node->op.type == toktype::plus) {
@@ -260,7 +260,7 @@ public:
         }
         else if (node->op.type == toktype::div) {
             if (std::stoi(right_expr) == 0) {
-                error(current_pos_, toktype::div, "Division by zero");
+                throw std::runtime_error("PARSER: Division by zero");
                 stop_parse();
             }
             return std::to_string(std::stoi(left_expr) / std::stoi(right_expr));
