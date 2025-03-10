@@ -42,6 +42,7 @@ class ParsePosition {
 
     ParsePosition(int x = 0) {}
     ParsePosition(specialpos specialPos_) : specialPos(specialPos_) {}
+    ParsePosition(std::string xPos_, std::string yPos_, std::string zPos_) : x(xPos_), y(yPos_), z(zPos_) {}
     ParsePosition(std::string xPos_, std::string yPos_, std::string zPos_, TokenPosition realStartPos_, TokenPosition realEndPos_) : x(xPos_), y(yPos_), z(zPos_), realStartPos(realStartPos_), realEndPos(realEndPos_) {}
 
     bool isSpecial() {
