@@ -72,7 +72,7 @@ class ParseResult {
     ErrorSyntax error;
 
     ParseResult(ErrorSyntax error_) : node(nullptr), error(error_) {}
-    ParseResult(anyNode node_) : node(node_), error(ErrorSyntax{}) {}
+    ParseResult(anyNode node_) : node(move(node_)), error(ErrorSyntax{}) {}
 };
 
 class Parser {
