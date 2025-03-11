@@ -86,7 +86,9 @@ class Parser {
         Token_ value = tokens[idx++];
         unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
         node->num_tok = value;
-        unique_ptr<ParseResult> result = make_unique<ParseResult>(anyNode(move(node)));
+        
+        anyNode wrapped_node = move(node);
+        unique_ptr<ParseResult> result = make_unique<ParseResult>(move(wrapped_node));
         return move(result);
     }
 
