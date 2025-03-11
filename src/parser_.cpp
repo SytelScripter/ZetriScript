@@ -110,7 +110,12 @@ class Parser {
 
         auto temp_result = move(parse_factor());
         if (!temp_result->error.isEmpty()) return temp_result;
-        bintype wrapped_node = move(std::visit([](auto&& arg) -> decltype(auto) { return arg; }, temp_result->node));
+        bintype wrapped_node = std::visit(
+            [](auto&& arg) -> std::unique_ptr<std::remove_reference_t<decltype(*arg)>> {
+                return std::move(arg);  // Move the unique_ptr out of the variant
+            },
+            temp_result->node
+        );
         node->left = move(wrapped_node);
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -120,7 +125,12 @@ class Parser {
 
             temp_result = move(parse_factor());
             if (!temp_result->error.isEmpty()) return temp_result;
-            bintype wrapped_node = move(std::visit([](auto&& arg) -> decltype(auto) { return arg; }, temp_result->node));
+            bintype wrapped_node = std::visit(
+                [](auto&& arg) -> std::unique_ptr<std::remove_reference_t<decltype(*arg)>> {
+                    return std::move(arg);  // Move the unique_ptr out of the variant
+                },
+                temp_result->node
+            );
             node->right = move(wrapped_node);
         }
 
