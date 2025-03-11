@@ -126,6 +126,7 @@ public:
             return std::move(result);
         }
         throw std::runtime_error("Expected class built-in, goto, or expression");
+        return std::make_unique<node::NodeExec>();
     }
 
     std::unique_ptr<node::NodeVarAssign> parse_var_assign() {
@@ -151,8 +152,10 @@ public:
         std::vector<ParsePosition, node::NodeExpr> args;
         while (idx_ < tokens_.size() && !is_token_type(toktype::right_paren)) {
             args.push_back(tokens_[idx_++].value);
-            if (!is_token_type(toktype::comma))
+            if (!is_token_type(toktype::comma)) {
                 error(toktype::right_paren, ")", "Expected ',' or ')'"); // automatically skips comma
+                return std::make_unique<node::NodeClassBuiltIn>();
+            }
         }
         error(toktype::right_paren, ")", "Expected ')'");
         result->class_name = class_name;
