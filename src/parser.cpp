@@ -184,6 +184,7 @@ public:
     }
 
     std::unique_ptr<node::NodeProg> parse_program() {
+        std::unique_ptr<node::NodeProg> result = std::make_unique<node::NodeProg>();
         current_pos_ = ParsePosition(specialpos::ENTRY);
         error(toktype::keyword, "ZetriScript", "EXPECTED 'ZetriScript'");
         error(toktype::exc_mark, "!", "Expected '!'");
@@ -194,6 +195,8 @@ public:
             std::unique_ptr<node::NodeStmt> stmt = parse_statement();
             statements.push_back(std::move(stmt));
         }
+        result->entry_pos = current_pos_;
+        result->statements = std::move(statements);
         return std::move(result);
     }
 
@@ -209,27 +212,27 @@ public:
         current_pos_ = ParsePosition(specialpos::POS_DECL);
         // parsing expression
         error(toktype::left_square, "[", "Expected '['");
-        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr1 = parse_expr();
+        std::variant<std::unique_ptr<node::NodeNumber>, std::unique_ptr<node::NodeBinOp>> expr1 = parse_expr();
         error(toktype::colon, ":", "Expected ':'");
-        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr2 = parse_expr();
+        std::variant<std::unique_ptr<node::NodeNumber>, std::unique_ptr<node::NodeBinOp>> expr2 = parse_expr();
         error(toktype::colon, ":", "Expected ':'");
-        std::variant<std::unique_ptr<node::NodeBinOp>, std::unique_ptr<node::NodeNumber>> expr3 = parse_expr();
+        std::variant<std::unique_ptr<node::NodeNumber>, std::unique_ptr<node::NodeBinOp>> expr3 = parse_expr();
         error(toktype::right_square, "]", "Expected ']'");
         // visiting binary operation nodes
         std::string num1, num2, num3;
 
         if (std::holds_alternative<std::unique_ptr<node::NodeBinOp>>(expr1)) {
-            std::unique_ptr<node::NodeBinOp> binop1 = std::get<std::unique_ptr<node::NodeBinOp>>(expr1);
+            std::unique_ptr<node::NodeBinOp> binop1 = std::move(std::get<std::unique_ptr<node::NodeBinOp>>(expr1));
             num1 = evaluate_expression(binop1);
         } else num1 = std::get<std::unique_ptr<node::NodeNumber>>(expr1)->num_tok.value;
         
         if (std::holds_alternative<std::unique_ptr<node::NodeBinOp>>(expr2)) {
-            std::unique_ptr<node::NodeBinOp> binop2 = std::get<std::unique_ptr<node::NodeBinOp>>(expr2);
+            std::unique_ptr<node::NodeBinOp> binop2 = std::move(std::get<std::unique_ptr<node::NodeBinOp>>(expr2));
             num2 = evaluate_expression(binop2);
         } else num2 = std::get<std::unique_ptr<node::NodeNumber>>(expr2)->num_tok.value;
         
         if (std::holds_alternative<std::unique_ptr<node::NodeBinOp>>(expr3)) {
-            std::unique_ptr<node::NodeBinOp> binop3 = std::get<std::unique_ptr<node::NodeBinOp>>(expr3);
+            std::unique_ptr<node::NodeBinOp> binop3 = std::move(std::get<std::unique_ptr<node::NodeBinOp>>(expr3));
             num3 = evaluate_expression(binop3);
         } else num3 = std::get<std::unique_ptr<node::NodeNumber>>(expr3)->num_tok.value;
 
