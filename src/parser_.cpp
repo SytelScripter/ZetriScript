@@ -101,17 +101,21 @@ class Parser {
     }
 
     unique_ptr<ParseResult> parse_term() {
-        auto temp_result = parse_factor();
+        auto temp_result = move(parse_factor());
         if (!temp_result.error.isEmpty()) return temp_result;
-        
-        unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
-        node->left = temp_result->node;
 
-        while (is_token_type(TOK_PLUS) || is_token_type(TOK_MINUS)) {
+        unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
+        anyNode wrapped_node = move(temp_result->node);
+        node->left = move(wrapped_node);
+
+        while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
             Token_ op_tok = current_tok;
             advance();
             node->op_tok = op_tok;
-            node->right = parse_factor();
+            temp_result = move(parse_factor());
+            if (!temp_result.error.isEmpty()) return temp_result;
+            anyNode wrapped_node = move(temp_result->node);
+            node->right = move(wrapped_node);
         }
 
         return parse_result(move(node));
