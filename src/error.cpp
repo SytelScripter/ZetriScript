@@ -1,5 +1,6 @@
 #include "string_with_arrows.cpp"
 #include "token.cpp"
+#pragma once
 
 enum class errortype {
     none = -1,
