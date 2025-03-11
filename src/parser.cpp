@@ -170,14 +170,14 @@ public:
         error(toktype::colon, ":", "Expected ':'");
         result->pos = current_pos_;
         // parsing the statement itself (CLASSBUILTIN, VAR_ASSIGN, EXEC)
-        while (!is_token(toktype::exc_mark)) { // the statement stops when execution starts (! is execution script)
+        while (!is_token_type(toktype::exc_mark)) { // the statement stops when execution starts (! is execution script)
             if (is_token_type(toktype::keyword))
-                result->stmts.push_back(parse_class_builtin());
+                result->stmts.push_back(std::move(parse_class_builtin()));
             else if (is_token_type(toktype::name) && tokens_[idx_ + 1].type == toktype::equals)
-                result->stmts.push_back(parse_var_assign());
+                result->stmts.push_back(std::move(parse_var_assign()));
             else if (is_token_type(toktype::name) && tokens_[idx_ + 1].type == toktype::exc_mark)
-                result->stmts.push_back(parse_exec());
-            if (!is_token(toktype::exc_mark))
+                result->stmts.push_back(std::move(parse_exec()));
+            if (!is_token_type(toktype::exc_mark))
                 error(toktype::semicolon, ";", "Expected ';' after statement");
         }
         return std::move(result);
@@ -195,7 +195,7 @@ public:
             std::unique_ptr<node::NodeStmt> stmt = parse_statement();
             statements.push_back(std::move(stmt));
         }
-        result->entry_pos = current_pos_;
+        result->pos_access = current_pos_;
         result->statements = std::move(statements);
         return std::move(result);
     }
