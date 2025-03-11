@@ -183,8 +183,8 @@ public:
         return std::move(result);
     }
 
-    std::unique_ptr<node::NodeProg> parse_program() {
-        std::unique_ptr<node::NodeProg> result = std::make_unique<node::NodeProg>();
+    std::unique_ptr<node::NodeProgram> parse_program() {
+        std::unique_ptr<node::NodeProgram> result = std::make_unique<node::NodeProgram>();
         current_pos_ = ParsePosition(specialpos::ENTRY);
         error(toktype::keyword, "ZetriScript", "EXPECTED 'ZetriScript'");
         error(toktype::exc_mark, "!", "Expected '!'");
