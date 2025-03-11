@@ -36,7 +36,7 @@ struct NodeExec {
 
 struct NodeClassBuiltIn {
     Token_ class_name_tok;
-    vector<variant<unique_ptr<ParsePosition>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>> args;
+    vector<variant<unique_ptr<ParsePosition>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>> args;
 };
 
 struct NodeVarAssign {
@@ -72,7 +72,7 @@ class ParseResult {
     ErrorSyntax error;
 
     ParseResult(ErrorSyntax error_) : error(error_) {}
-    ParseResult(anyNode node_) : node(move(node_)) {}
+    ParseResult(anyNode node_) : node(move(node_)), error(ErrorSyntax()) {}
 };
 
 class Parser {
@@ -83,21 +83,21 @@ class Parser {
         }
 
     unique_ptr<ParseResult> parse_factor() {
-        Token_ value = tokens[idx_++];
+        Token_ value = tokens[idx++];
         unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
         node->num_tok = value;
-        unique_ptr<ParseResult> result = make_unique<ParseResult>(move(node));
+        unique_ptr<ParseResult> result = make_unique<ParseResult>(anyNode(move(node)));
         return move(result);
     }
 
     private:
-    int idx_ = -1;
+    int idx = -1;
     vector<Token_> tokens;
     Token_ current_tok;
 
     inline void advance() {
-        if (idx_ < tokens.size()) {
-            current_tok = tokens_[idx_];
+        if (idx < tokens.size()) {
+            current_tok = tokens[idx];
         }
     }
 };
