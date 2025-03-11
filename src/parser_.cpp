@@ -112,7 +112,14 @@ class Parser {
         if (!temp_result->error.isEmpty()) return temp_result;
         node->left = std::visit(
             [](auto&& arg) -> bintype {
-                return move(arg);  // Move the unique_ptr out of the variant
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T, std::unique_ptr<NodeNumber>> ||
+                              std::is_same_v<T, std::unique_ptr<NodeBinOp>> ||
+                              std::is_same_v<T, std::unique_ptr<NodeVarAccess>>) {
+                    return std::move(arg);
+                } else {
+                    throw std::runtime_error("Unexpected type in variant");
+                }
             },
             temp_result->node
         );
@@ -126,7 +133,14 @@ class Parser {
             if (!temp_result->error.isEmpty()) return temp_result;
             node->right = std::visit(
                 [](auto&& arg) -> bintype {
-                    return move(arg);  // Move the unique_ptr out of the variant
+                    using T = std::decay_t<decltype(arg)>;
+                    if constexpr (std::is_same_v<T, std::unique_ptr<NodeNumber>> ||
+                                  std::is_same_v<T, std::unique_ptr<NodeBinOp>> ||
+                                  std::is_same_v<T, std::unique_ptr<NodeVarAccess>>) {
+                        return std::move(arg);
+                    } else {
+                        throw std::runtime_error("Unexpected type in variant");
+                    }
                 },
                 temp_result->node
             );
