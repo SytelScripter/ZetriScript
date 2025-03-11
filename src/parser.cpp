@@ -31,7 +31,7 @@ namespace node {
 
     struct NodeClassBuiltIn {
         Token_ class_name;
-        std::vector<std::unique_ptr<ParsePosition>, std::unique_ptr<NodeBinOp>, std::unique_ptr<NodeNumber>> args;
+        std::vector<std::variant<std::unique_ptr<ParsePosition>, std::unique_ptr<NodeBinOp>, std::unique_ptr<NodeNumber>>> args;
     };
 
     struct NodeVarAssign {
@@ -221,17 +221,17 @@ public:
         if (std::holds_alternative<std::unique_ptr<node::NodeBinOp>>(expr1)) {
             std::unique_ptr<node::NodeBinOp> binop1 = std::get<std::unique_ptr<node::NodeBinOp>>(expr1);
             num1 = evaluate_expression(binop1);
-        } else num1 = std::to_string(std::get<std::unique_ptr<node::NodeNumber>>(expr1)->num_tok.value);
+        } else num1 = std::get<std::unique_ptr<node::NodeNumber>>(expr1)->num_tok.value;
         
         if (std::holds_alternative<std::unique_ptr<node::NodeBinOp>>(expr2)) {
             std::unique_ptr<node::NodeBinOp> binop2 = std::get<std::unique_ptr<node::NodeBinOp>>(expr2);
             num2 = evaluate_expression(binop2);
-        } else num2 = std::to_string(std::get<std::unique_ptr<node::NodeNumber>>(expr2)->num_tok.value);
+        } else num2 = std::get<std::unique_ptr<node::NodeNumber>>(expr2)->num_tok.value;
         
         if (std::holds_alternative<std::unique_ptr<node::NodeBinOp>>(expr3)) {
             std::unique_ptr<node::NodeBinOp> binop3 = std::get<std::unique_ptr<node::NodeBinOp>>(expr3);
             num3 = evaluate_expression(binop3);
-        } else num3 = std::to_string(std::get<std::unique_ptr<node::NodeNumber>>(expr3)->num_tok.value);
+        } else num3 = std::get<std::unique_ptr<node::NodeNumber>>(expr3)->num_tok.value;
 
         current_pos_ = ParsePosition(num1, num2, num3);
     }
