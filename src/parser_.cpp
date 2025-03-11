@@ -28,6 +28,11 @@ using anyNode = variant<
     unique_ptr<NodeBinOp>, 
     unique_ptr<NodeNumber>
 >;
+using bintype = variant<
+    unique_ptr<NodeNumber>,
+    unique_ptr<NodeBinOp>,
+    unique_ptr<NodeVarAccess>
+>;
 
 // definitions of all nodes
 struct NodeNumber {
@@ -35,9 +40,9 @@ struct NodeNumber {
 };
 
 struct NodeBinOp {
-    variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>> left;
+    bintype left;
     Token_ op_tok;
-    variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>> right;
+    bintype right;
 };
 
 struct NodeExec {
@@ -105,7 +110,7 @@ class Parser {
         if (!temp_result.error.isEmpty()) return temp_result;
 
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
-        anyNode wrapped_node = move(temp_result->node);
+        bintype wrapped_node = move(temp_result->node);
         node->left = move(wrapped_node);
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -114,7 +119,7 @@ class Parser {
             node->op_tok = op_tok;
             temp_result = move(parse_factor());
             if (!temp_result.error.isEmpty()) return temp_result;
-            anyNode wrapped_node = move(temp_result->node);
+            bintype wrapped_node = move(temp_result->node);
             node->right = move(wrapped_node);
         }
 
