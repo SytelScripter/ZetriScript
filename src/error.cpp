@@ -35,4 +35,8 @@ class ErrorSyntax {
         std::cout << "\t" << parser_arrows(pos) << "\n";
         std::cout << "SYNTAX ERROR: ";
     }
+
+    inline bool isEmpty() const {
+        return details.empty();
+    }
 };

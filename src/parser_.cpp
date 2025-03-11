@@ -97,22 +97,24 @@ class Parser {
         unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
         node->num_tok = value;
 
-        anyNode wrapped_node = move(node);
-        unique_ptr<ParseResult> result = make_unique<ParseResult>(move(wrapped_node));
-        return result;
+        return parse_result(move(node));
     }
 
-    variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> parse_term() {
-        auto left = parse_factor();
-        while (idx < tokens.size() && (is_token_type(toktype::mul) || is_token_type(toktype::div))) {
-            Token_ op_tok = tokens[idx++];
-            unique_ptr<NodeBinOp> bin_op = make_unique<NodeBinOp>();
-            bin_op->op_tok = op_tok;
-            bin_op->left = move(left);
-            bin_op->right = parse_factor();
-            left = move(bin_op);
+    unique_ptr<ParseResult> parse_term() {
+        auto temp_result = parse_factor();
+        if (!temp_result.error.isEmpty()) return temp_result;
+        
+        unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
+        node->left = temp_result->node;
+
+        while (is_token_type(TOK_PLUS) || is_token_type(TOK_MINUS)) {
+            Token_ op_tok = current_tok;
+            advance();
+            node->op_tok = op_tok;
+            node->right = parse_factor();
         }
-        return move(left);
+
+        return parse_result(move(node));
     }
 
     private:
@@ -132,5 +134,11 @@ class Parser {
 
     inline bool is_token(toktype type, const string& value) const {
         return current_tok.type == type && current_tok.value == value;
+    }
+
+    inline unique_ptr<ParseResult> parse_result(anyNode node) {
+        anyNode wrapped_node = move(node);
+        unique_ptr<ParseResult> result = make_unique<ParseResult>(move(wrapped_node));
+        return result;
     }
 };
