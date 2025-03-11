@@ -82,10 +82,11 @@ class Parser {
             advance();
         }
 
-    ParseResult parse_factor() {
+    unique_ptr<ParseResult> parse_factor() {
         Token_ value = tokens[idx_++];
-        unique_ptr<NodeNumber> result = make_unique<NodeNumber>();
-        result->num_tok = value;
+        unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
+        node->num_tok = value;
+        unique_ptr<ParseResult> result = make_unique<ParseResult>(node);
         return move(result);
     }
 
@@ -95,7 +96,7 @@ class Parser {
     Token_ current_tok;
 
     inline void advance() {
-        if (idx_ < tokens_.size()) {
+        if (idx_ < tokens.size()) {
             current_tok = tokens_[idx_];
         }
     }
