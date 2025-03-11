@@ -77,23 +77,26 @@ class ParseResult {
 
 class Parser {
     public:
-    inline explicit Parser(vector<Token_> tokens) : 
-        tokens_(move(tokens)) {
+    inline explicit Parser(const vector<Token_>& tokens_) : 
+        tokens(move(tokens_)) {
             advance();
         }
 
     ParseResult parse_factor() {
         Token_ value = tokens[idx_++];
-        unique_ptr<NodeNumber> result = make_unique<NodeNumber>(value);
+        unique_ptr<NodeNumber> result = make_unique<NodeNumber>();
+        result->num_tok = value;
         return move(result);
     }
 
     private:
     int idx_ = -1;
+    vector<Token_> tokens;
+    Token_ current_tok;
 
     inline void advance() {
         if (idx_ < tokens_.size()) {
-            current_token_ = tokens_[idx_];
+            current_tok = tokens_[idx_];
         }
     }
 };
