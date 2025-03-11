@@ -107,43 +107,19 @@ class Parser {
 
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
+        unique_ptr<ParseResult> temp_result = make_unique<ParseResult>();
+        node->left = visit_node(move(temp_result), parse_factor);
 
-        auto temp_result = move(parse_factor());
-        if (!temp_result->error.isEmpty()) return temp_result;
-        node->left = std::visit(
-            [](auto&& arg) -> bintype {
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, std::unique_ptr<NodeNumber>> ||
-                              std::is_same_v<T, std::unique_ptr<NodeBinOp>> ||
-                              std::is_same_v<T, std::unique_ptr<NodeVarAccess>>) {
-                    return std::move(arg);
-                } else {
-                    throw std::runtime_error("Unexpected type in variant");
-                }
-            },
-            temp_result->node
-        );
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
             Token_ op_tok = current_tok;
             advance();
             node->op_tok = op_tok;
 
+
             temp_result = move(parse_factor());
             if (!temp_result->error.isEmpty()) return temp_result;
-            node->right = std::visit(
-                [](auto&& arg) -> bintype {
-                    using T = std::decay_t<decltype(arg)>;
-                    if constexpr (std::is_same_v<T, std::unique_ptr<NodeNumber>> ||
-                                  std::is_same_v<T, std::unique_ptr<NodeBinOp>> ||
-                                  std::is_same_v<T, std::unique_ptr<NodeVarAccess>>) {
-                        return std::move(arg);
-                    } else {
-                        throw std::runtime_error("Unexpected type in variant");
-                    }
-                },
-                temp_result->node
-            );
+            node->right = visit_node(move(temp_result), parse_factor);
         }
 
         return parse_result(move(node));
@@ -172,5 +148,23 @@ class Parser {
         anyNode wrapped_node = move(node);
         unique_ptr<ParseResult> result = make_unique<ParseResult>(move(wrapped_node));
         return result;
+    }
+
+    inline auto visit_node(unique_ptr<ParseResult> temp_result, std::function node_visited) {
+        temp_result = move(node_visited());
+        if (!temp_result->error.isEmpty()) return temp_result;
+        return std::visit(
+            [](auto&& arg) -> bintype {
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T, std::unique_ptr<NodeNumber>> ||
+                              std::is_same_v<T, std::unique_ptr<NodeBinOp>> ||
+                              std::is_same_v<T, std::unique_ptr<NodeVarAccess>>) {
+                    return std::move(arg);
+                } else {
+                    throw std::runtime_error("Unexpected type in variant");
+                }
+            },
+            temp_result->node
+        );
     }
 };
