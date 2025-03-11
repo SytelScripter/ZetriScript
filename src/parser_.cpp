@@ -17,7 +17,17 @@ struct NodeProg;
 
 // usings
 using std::variant, std::vector, std::unique_ptr, std::make_unique, std::move;
-using anyNode = variant<NodeProg, NodeStmt, NodePosAccess, NodeVarAccess, NodeVarAssign, NodeClassBuiltIn, NodeExec, NodeBinOp, NodeNumber>;
+using anyNode = variant<
+    unique_ptr<NodeProg>, 
+    unique_ptr<NodeStmt>, 
+    unique_ptr<NodePosAccess>, 
+    unique_ptr<NodeVarAccess>, 
+    unique_ptr<NodeVarAssign>, 
+    unique_ptr<NodeClassBuiltIn>, 
+    unique_ptr<NodeExec>, 
+    unique_ptr<NodeBinOp>, 
+    unique_ptr<NodeNumber>
+>;
 
 // definitions of all nodes
 struct NodeNumber {
@@ -86,10 +96,10 @@ class Parser {
         Token_ value = tokens[idx++];
         unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
         node->num_tok = value;
-        
+
         anyNode wrapped_node = move(node);
         unique_ptr<ParseResult> result = make_unique<ParseResult>(move(wrapped_node));
-        return move(result);
+        return result;
     }
 
     private:
