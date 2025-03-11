@@ -16,7 +16,7 @@ struct NodeStmt;
 struct NodeProg;
 
 // usings
-using std::variant, std::vector, std::unique_ptr, std::make_unique, std::move;
+using std::variant, std::vector, std::unique_ptr, std::make_unique, std::move, std::string;
 using anyNode = variant<
     unique_ptr<NodeProg>, 
     unique_ptr<NodeStmt>, 
@@ -102,6 +102,19 @@ class Parser {
         return result;
     }
 
+    variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> parse_term() {
+        auto left = parse_factor();
+        while (idx < tokens.size() && (is_token_type(toktype::mul) || is_token_type(toktype::div))) {
+            Token_ op_tok = tokens[idx++];
+            unique_ptr<NodeBinOp> bin_op = make_unique<NodeBinOp>();
+            bin_op->op_tok = op_tok;
+            bin_op->left = move(left);
+            bin_op->right = parse_factor();
+            left = move(bin_op);
+        }
+        return move(left);
+    }
+
     private:
     int idx = -1;
     vector<Token_> tokens;
@@ -111,5 +124,13 @@ class Parser {
         if (idx < tokens.size()) {
             current_tok = tokens[idx];
         }
+    }
+
+    inline bool is_token_type(toktype type) const {
+        return current_tok.type == type;
+    }
+
+    inline bool is_token(toktype type, const string& value) const {
+        return current_tok.type == type && current_tok.value == value;
     }
 };
