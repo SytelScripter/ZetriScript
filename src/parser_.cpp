@@ -71,8 +71,8 @@ class ParseResult {
     anyNode node;
     ErrorSyntax error;
 
-    ParseResult(ErrorSyntax error_) : node(nullptr), error(error_) {}
-    ParseResult(anyNode node_) : node(move(node_)), error(ErrorSyntax{}) {}
+    ParseResult(ErrorSyntax error_) : error(error_) {}
+    ParseResult(anyNode node_) : node(move(node_)) {}
 };
 
 class Parser {
@@ -86,7 +86,7 @@ class Parser {
         Token_ value = tokens[idx_++];
         unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
         node->num_tok = value;
-        unique_ptr<ParseResult> result = make_unique<ParseResult>(node);
+        unique_ptr<ParseResult> result = make_unique<ParseResult>(move(node));
         return move(result);
     }
 
