@@ -63,7 +63,7 @@ public:
         Token_ value = tokens_[idx_++];
         std::unique_ptr<node::NodeNumber> result = std::make_unique<node::NodeNumber>();
         result->value = value;
-        return result;
+        return std::move(result);
     }
 
     std::variant<std::unique_ptr<node::NodeNumber>, std::unique_ptr<node::NodeBinOp>> parse_term() {
@@ -84,8 +84,8 @@ public:
             result_->right_expr = std::move(right_expr);
             result->left_expr = std::move(result_);
         }
-        if (returnBinOp) return result;
-        return node;
+        if (returnBinOp) return std::move(result);
+        return std::move(node);
     }
 
     std::variant<std::unique_ptr<node::NodeNumber>, std::unique_ptr<node::NodeBinOp>> parse_expr() {
@@ -100,7 +100,7 @@ public:
             temp_->right_expr = std::move(right_expr);
             left_expr = std::move(temp_);
         }
-        return left_expr;
+        return std::move(left_expr);
     }
 
     std::unique_ptr<node::NodeExec> parse_exec() {
@@ -111,19 +111,19 @@ public:
             Token_ name = tokens_[idx_++];
             error(toktype::exc_mark, "!", "Expected '!'");
             result->executed = name;
-            return result;
+            return std::move(result);
         }
         else if (is_token_type(toktype::keyword) && tokens_[idx_ + 1].type == toktype::left_paren) {
             std::unique_ptr<node::NodeClassBuiltIn> result_ = parse_class_builtin();
             error(toktype::exc_mark, "!", "Expected '!'");
             result->executed = result_;
-            return result;
+            return std::move(result);
         }
         else if (is_token_type(toktype::keyword)) {
             Token_ goto_token = tokens_[idx_++];
             error(toktype::exc_mark, "!", "Expected '!'");
             result->executed = goto_token;
-            return result;
+            return std::move(result);
         }
         throw std::runtime_error("Expected class built-in, goto, or expression");
     }
@@ -138,7 +138,7 @@ public:
         std::unique_ptr<node::NodeBinOp> expr = parse_expr();
         result->var_name_tok = var_name;
         result->value = expr;
-        return result;
+        return std::move(result);
     }
 
     std::unique_ptr<node::NodeClassBuiltIn> parse_class_builtin() {
@@ -157,7 +157,7 @@ public:
         error(toktype::right_paren, ")", "Expected ')'");
         result->class_name = class_name;
         result->args = args;
-        return result;
+        return std::move(result);
     }
 
     std::unique_ptr<node::NodeStmt> parse_statement() {
@@ -180,7 +180,7 @@ public:
             if (!is_token(toktype::exc_mark))
                 error(toktype::semicolon, ";", "Expected ';' after statement");
         }
-        return result;
+        return std::move(result);
     }
 
     std::unique_ptr<node::NodeProg> parse_program() {
@@ -194,7 +194,7 @@ public:
             std::unique_ptr<node::NodeStmt> stmt = parse_statement();
             statements.push_back(std::move(stmt));
         }
-        return result;
+        return std::move(result);
     }
 
     void visit_position() {
