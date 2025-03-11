@@ -236,7 +236,7 @@ public:
         current_pos_ = ParsePosition(num1, num2, num3);
     }
 
-    std::string evaluate_expression(std::unique_ptr<node::NodeBinOp> node_) {
+    std::string evaluate_expression(const std::unique_ptr<node::NodeBinOp>& node_) {
         /*
         A little part of an interpreter for binary operation node
         This part of code is for demonstration purposes and doesn't include actual interpreter logic
