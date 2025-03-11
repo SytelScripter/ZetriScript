@@ -68,7 +68,7 @@ public:
 
     std::variant<std::unique_ptr<node::NodeNumber>, std::unique_ptr<node::NodeBinOp>> parse_term() {
         // create the term node
-        std::unique_ptr<node::NodeBinOp> result;
+        std::unique_ptr<node::NodeBinOp> result = std::make_unique<node::NodeBinOp>();
         std::unique_ptr<node::NodeNumber> node = parse_factor();
         bool returnBinOp = false;
         if (is_token_type(toktype::mul) || is_token_type(toktype::div)) {
@@ -103,10 +103,10 @@ public:
         return left_expr;
     }
 
-    std::unique_ptr<NodeExec> parse_exec() {
+    std::unique_ptr<node::NodeExec> parse_exec() {
         // create the execution node
         // parsing expression
-        std::unique_ptr<NodeExec> result;
+        std::unique_ptr<node::NodeExec> result = std::make_unique<node::NodeExec>();
         if (is_token_type(toktype::name)) {
             Token_ name = tokens_[idx_++];
             error(toktype::exc_mark, "!", "Expected '!'");
@@ -114,7 +114,7 @@ public:
             return result;
         }
         else if (is_token_type(toktype::keyword) && tokens_[idx_ + 1].type == toktype::left_paren) {
-            std::unique_ptr<NodeClassBuiltIn> result_ = parse_class_builtin();
+            std::unique_ptr<node::NodeClassBuiltIn> result_ = parse_class_builtin();
             error(toktype::exc_mark, "!", "Expected '!'");
             result->executed = result_;
             return result;
@@ -128,10 +128,10 @@ public:
         throw std::runtime_error("Expected class built-in, goto, or expression");
     }
 
-    std::unique_ptr<NodeVarAssign> parse_var_assign() {
+    std::unique_ptr<node::NodeVarAssign> parse_var_assign() {
         // create the variable assignment node
         // parsing variable name
-        std::unique_ptr<NodeVarAssign> result = std::make_unique<node::NodeVarAssign>();
+        std::unique_ptr<node::NodeVarAssign> result = std::make_unique<node::NodeVarAssign>();
         Token_ var_name = error_type(toktype::identifier, "Expected identifier", true);
         error(toktype::equal, "=", "Expected '='");
         // parsing expression
@@ -141,7 +141,7 @@ public:
         return result;
     }
 
-    std::unique_ptr<NodeClassBuiltIn> parse_class_builtin() {
+    std::unique_ptr<node::NodeClassBuiltIn> parse_class_builtin() {
         // create the class built-in node (calling built-in classes)
         // parsing class name
         std::unique_ptr<node::NodeClassBuiltIn> result = std::make_unique<node::NodeClassBuiltIn>();
@@ -160,7 +160,7 @@ public:
         return result;
     }
 
-    std::unique_ptr<NodeStmt> parse_statement() {
+    std::unique_ptr<node::NodeStmt> parse_statement() {
         // parsing statements are pretty simple in ZetriScript, they consist of position declaration and statement itself
         // create the statement node
         std::unique_ptr<node::NodeStmt> result = std::make_unique<node::NodeStmt>();
@@ -183,15 +183,15 @@ public:
         return result;
     }
 
-    std::unique_ptr<NodeProg> parse_program() {
+    std::unique_ptr<node::NodeProg> parse_program() {
         current_pos_ = ParsePosition(specialpos::ENTRY);
         error(toktype::keyword, "ZetriScript", "EXPECTED 'ZetriScript'");
         error(toktype::exc_mark, "!", "Expected '!'");
         visit_position();
         // parsing the program body
-        std::vector<std::unique_ptr<NodeStmt>> statements;
+        std::vector<std::unique_ptr<node::NodeStmt>> statements;
         while (!is_token(toktype::keyword, "ZetriScript")) {
-            std::unique_ptr<NodeStmt> stmt = parse_statement();
+            std::unique_ptr<node::NodeStmt> stmt = parse_statement();
             statements.push_back(std::move(stmt));
         }
         return result;
