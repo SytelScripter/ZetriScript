@@ -154,7 +154,7 @@ class Parser {
         unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
         node->num_tok = value;
 
-        return parse_result(move(node));
+        return parse_result<unique_ptr<NodeNumber>>(move(node));
     }
 
     unique_ptr<ParseResult> parse_term() {
@@ -164,7 +164,7 @@ class Parser {
 
         result->register_([this]() { return parse_factor(); });
         if (!result->error.isEmpty()) return result;
-        node->left = move(result->node);
+        node->left = move(result->extract_node(types));
 
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -174,10 +174,10 @@ class Parser {
 
             result->register_([this]() { return parse_factor(); });
             if (!result->error.isEmpty()) return result;
-            node->right = move(result->node);
+            node->right = move(result->extract_node(types));
         }
 
-        return parse_result(move(node));
+        return parse_result<unique_ptr<NodeBinOp>>(move(node));
     }
 
     private:
@@ -199,10 +199,10 @@ class Parser {
         return current_tok.type == type && current_tok.value == value;
     }
 
-    inline unique_ptr<ParseResult> parse_result(anyNode node) {
-        anyNode wrapped_node = move(node);
+    template <typename T>
+    inline unique_ptr<ParseResult> parse_result(T node) {
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
-        result->node = move(wrapped_node);
+        result->node = move(node);
         return result;
     }
 
