@@ -77,9 +77,9 @@ struct NodeVarAccess {
 };
 
 struct NodePosAccess {
-    variant<bintype> x;
-    variant<bintype> y;
-    variant<bintype> z;
+    bintype x;
+    bintype y;
+    bintype z;
 };
 
 struct NodeStmt {
@@ -125,13 +125,13 @@ class Parser {
         unique_ptr<ParseResult> xResult = move(parse_expr());
         if (!xResult->error.isEmpty()) return move(xResult);
         node->x = move(convert_node<bintype>(xResult->node));
-        std::optional<unique_ptr<ParseResult>> temp1 = check_error(toktype::comma);
+        std::optional<unique_ptr<ParseResult>> temp1 = check_error(toktype::colon);
         if (temp1.has_value()) return move(temp1.value());
         advance(); // ','
         unique_ptr<ParseResult> yResult = move(parse_expr());
         if (!yResult->error.isEmpty()) return move(yResult);
         node->y = move(convert_node<bintype>(yResult->node));
-        std::optional<unique_ptr<ParseResult>> temp2 = check_error(toktype::comma);
+        std::optional<unique_ptr<ParseResult>> temp2 = check_error(toktype::colon);
         if (temp2.has_value()) return move(temp2.value());
         unique_ptr<ParseResult> zResult = move(parse_expr());
         if (!zResult->error.isEmpty()) return move(zResult);
