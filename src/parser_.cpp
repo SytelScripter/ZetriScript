@@ -147,11 +147,11 @@ class Parser {
             using T = std::decay_t<decltype(value)>;
             bintype result;
             if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
-                result = value;
+                return bintype{move(value)};
             else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
-                result = value;
+                return bintype{move(value)};
             else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
-                result = value;
+                return bintype{move(value)};
             else 
                 throw std::runtime_error("Invalid token type in parse_term");
             return result;
