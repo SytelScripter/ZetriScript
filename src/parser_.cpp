@@ -335,11 +335,19 @@ class Parser {
     unique_ptr<ParseResult> parse_stmt() {
         unique_ptr<ParseResult> result_stmt = make_unique<ParseResult>();
         unique_ptr<NodeStmt> node = make_unique<NodeStmt>();
-        unique_ptr<ParseResult> pos_access = move(parse_position());
-        if (!pos_access->error.isEmpty()) return move(pos_access);
-        node->pos = move(get<unique_ptr<NodePosAccess>>(pos_access->node));
 
         while (!is_tok_type(toktype::exc_mark)) {
+            unique_ptr<ParseResult> pos_access = move(parse_position());
+            if (!pos_access->error.isEmpty()) return move(pos_access);
+            node->pos = move(get<unique_ptr<NodePosAccess>>(pos_access->node));
+
+            if (!is_tok_type(toktype::colon)) {
+                ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+                result_stmt->error = ErrorSyntax(parse_position, std::string("EXPECTED ':' BUT GOT: '") + current_tok.to_string() + std::string("'"));
+                return move(result_stmt);
+            }
+            advance(); // ':'
+
             unique_ptr<ParseResult> var_assign_result = move(parse_var_assign());
             if (!var_assign_result->error.isEmpty()) return move(var_assign_result);
             node->stmts.push_back(convert_node<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>>(move(var_assign_result->node)));
