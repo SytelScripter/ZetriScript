@@ -61,7 +61,7 @@ struct NodeBinOp {
 };
 
 struct NodeGoto {
-    unique_ptr<NodePosAccess> pos;
+    unique_ptr<NodePosAccess> target_pos;
 };
 
 struct NodeExec {
