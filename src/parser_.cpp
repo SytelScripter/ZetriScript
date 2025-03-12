@@ -342,7 +342,7 @@ class Parser {
         while (!is_tok_type(toktype::exc_mark)) {
             unique_ptr<ParseResult> var_assign_result = move(parse_var_assign());
             if (!var_assign_result->error.isEmpty()) return move(var_assign_result);
-            node->stmts.push_back(move(var_assign_result->node));
+            node->stmts.push_back(convert_node<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>>(move(var_assign_result->node)));
 
             if (is_tok_type(toktype::semicolon)) {
                 advance();
