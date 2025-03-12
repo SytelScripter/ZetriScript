@@ -163,6 +163,7 @@ class Parser {
         std::vector<int> types = { get_i<NodeNumber>(), get_i<NodeBinOp>(), get_i<NodeVarAccess>() }; // {8, 7, 3}
 
         result->register_([this]() { return parse_factor(); });
+        if (!result->error.isEmpty()) return result;
         node->left = move(result->extract_node(types));
 
 
@@ -172,6 +173,7 @@ class Parser {
             node->op_tok = op_tok;
 
             result->register_([this]() { return parse_factor(); });
+            if (!result->error.isEmpty()) return result;
             node->right = move(result->extract_node(types));
         }
 
