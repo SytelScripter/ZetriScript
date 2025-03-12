@@ -133,19 +133,20 @@ class Parser {
         unique_ptr<ParseResult> result_term = move(parse_factor());
         
         if (!result_term->error.isEmpty()) return result_term;
-        node->left = move(visit([](auto&& value) -> bintype {
-            using T = std::decay_t<decltype(value)>;
-            bintype result;
-            if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
-                return bintype{move(value)};
-            else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
-                return bintype{move(value)};
-            else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
-                return bintype{move(value)};
-            else 
-                throw std::runtime_error("Invalid token type in parse_term");
-            return result;
-        }, result_term->node));
+        node->left = move(convert_node<bintype, 3>(result_term->node));
+        // node->left = move(visit([](auto&& value) -> bintype {
+        //     using T = std::decay_t<decltype(value)>;
+        //     bintype result;
+        //     if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
+        //         return bintype{move(value)};
+        //     else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
+        //         return bintype{move(value)};
+        //     else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
+        //         return bintype{move(value)};
+        //     else 
+        //         throw std::runtime_error("Invalid token type in parse_term");
+        //     return result;
+        // }, result_term->node));
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
             Token_ op_tok = current_tok;
@@ -154,17 +155,18 @@ class Parser {
 
             result_term = move(parse_factor());
             if (!result_term->error.isEmpty()) return result_term;
-            node->right = move(visit([](auto&& value) -> bintype {
-                using T = std::decay_t<decltype(value)>;
-                if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
-                    return bintype{move(value)};
-                else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
-                    return bintype{move(value)};
-                else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
-                    return bintype{move(value)};
-                else 
-                    throw std::runtime_error("Invalid token type in parse_term");
-            }, result_term->node));
+            node->right = move(convert_node<bintype, 3>(result_term->node));
+            // node->right = move(visit([](auto&& value) -> bintype {
+            //     using T = std::decay_t<decltype(value)>;
+            //     if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
+            //         return bintype{move(value)};
+            //     else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
+            //         return bintype{move(value)};
+            //     else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
+            //         return bintype{move(value)};
+            //     else 
+            //         throw std::runtime_error("Invalid token type in parse_term");
+            // }, result_term->node));
         }
 
         return parse_result<unique_ptr<NodeBinOp>>(move(node));
@@ -196,19 +198,33 @@ class Parser {
         return result;
     }
 
-    // template <typename nodeT>
-    // int get_i() {
-    //     if (std::is_same_v<nodeT, unique_ptr<NodeProg>>) return 0;
-    //     if (std::is_same_v<nodeT, unique_ptr<NodeStmt>>) return 1;
-    //     if (std::is_same_v<nodeT, unique_ptr<NodePosAccess>>) return 2;
-    //     if (std::is_same_v<nodeT, unique_ptr<NodeVarAccess>>) return 3;
-    //     if (std::is_same_v<nodeT, unique_ptr<NodeVarAssign>>) return 4;
-    //     if (std::is_same_v<nodeT, unique_ptr<NodeClassBuiltIn>>) return 5;
-    //     if (std::is_same_v<nodeT, unique_ptr<NodeExec>>) return 6;
-    //     if (std::is_same_v<nodeT, unique_ptr<NodeBinOp>>) return 7;
-    //     if (std::is_same_v<nodeT, unique_ptr<NodeNumber>>) return 8;
-    //     else throw std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
-    // }
+    template <typename variantT, int variantLen>
+    inline variantT convert_node(anyNode nodeAssigned) {
+        return move(visit([](auto&& value) -> variantT {
+            using T = std::decay_t<decltype(value)>;
+            for (int i = 0; i < variantLen; i++) {
+                using TypeT = typename std::variant_alternative<i, VariantT>::type;
+                if constexpr(std::is_same_v<T, TypeT>) {
+                    return variantT{move(std::get<i>(value))};
+                }
+            }
+            throw std::runtime_error("Invalid token type in parse_term");
+        }, nodeAssigned));
+    }
+
+    template <typename nodeT>
+    int get_i() {
+        if (std::is_same_v<nodeT, unique_ptr<NodeProg>>) return 0;
+        if (std::is_same_v<nodeT, unique_ptr<NodeStmt>>) return 1;
+        if (std::is_same_v<nodeT, unique_ptr<NodePosAccess>>) return 2;
+        if (std::is_same_v<nodeT, unique_ptr<NodeVarAccess>>) return 3;
+        if (std::is_same_v<nodeT, unique_ptr<NodeVarAssign>>) return 4;
+        if (std::is_same_v<nodeT, unique_ptr<NodeClassBuiltIn>>) return 5;
+        if (std::is_same_v<nodeT, unique_ptr<NodeExec>>) return 6;
+        if (std::is_same_v<nodeT, unique_ptr<NodeBinOp>>) return 7;
+        if (std::is_same_v<nodeT, unique_ptr<NodeNumber>>) return 8;
+        else throw std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
+    }
 
 };
 
