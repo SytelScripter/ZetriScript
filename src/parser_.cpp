@@ -137,7 +137,20 @@ class Parser {
             result_factor->node = move(node);
             return move(result_factor);
         }
-        else if (is_tok_type)
+        else if (is_tok_type(toktype::left_paren)) {
+            advance(); // '('
+            unique_ptr<ParseResult> result_expr = parse_expr();
+            unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
+            if (!result_expr->error.isEmpty()) return result_expr;
+
+            if (!is_tok_type(toktype::right_paren)) {
+                ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+                result_factor->error = ErrorSyntax(parse_position, std::string("EXPECTED ')'"));
+                return move(result_factor);
+            }
+            advance(); // ')'
+            return move(result_expr);
+        }
 
         ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
         result_factor->error = ErrorSyntax(parse_position, std::string("EXPECTED INT_LIT, FLOAT_LIT, NAME, OR '(', BUT GOT: '") + current_tok.to_string() + std::string("'"));
