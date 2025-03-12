@@ -11,7 +11,6 @@
 // declaration of all nodes
 struct NodeNumber;
 struct NodeBinOp;
-struct NodeGoto;
 struct NodeExec;
 struct NodeClassBuiltIn;
 struct NodeVarAssign;
@@ -39,7 +38,6 @@ using anyNode = variant<
     unique_ptr<NodeVarAssign>, 
     unique_ptr<NodeClassBuiltIn>, 
     unique_ptr<NodeExec>, 
-    unique_ptr<NodeGoto>,
     unique_ptr<NodeBinOp>, 
     unique_ptr<NodeNumber>
 >;
@@ -60,12 +58,8 @@ struct NodeBinOp {
     bintype right;
 };
 
-struct NodeGoto {
-    unique_ptr<NodePosAccess> target_pos;
-};
-
 struct NodeExec {
-    variant<unique_ptr<NodeGoto>, unique_ptr<NodeVarAccess>> executed;
+    variant<unique_ptr<NodeVarAccess>, unique_ptr<NodePosAccess>, unique_ptr<NodeClassBuiltIn>> executed;
 };
 
 struct NodeClassBuiltIn {
@@ -228,63 +222,6 @@ class Parser {
         return parse_result<unique_ptr<NodeBinOp>>(move(node));
     }
 
-    unique_ptr<ParseResult> parse_goto() {
-        unique_ptr<ParseResult> result_goto = make_unique<ParseResult>();
-        unique_ptr<NodeGoto> node = make_unique<NodeGoto>();
-
-        if (!is_tok(toktype::keyword, "goto")) {
-            unique_ptr<ParseResult> node_pos = move(parse_position());
-            return move(node_pos);
-        }
-        advance(); // 'goto'
-        unique_ptr<ParseResult> node_pos = move(parse_position());
-        if (!node_pos->error.isEmpty()) return node_pos;
-        if (!holds_alternative<NodePosAccess>(node_pos->node)) {
-            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
-            result_goto->error = ErrorSyntax(parse_position, std::string("EXPECTED NodePosAccess"));
-            return move(result_goto);
-        }
-        node->target_pos = move(get<NodePosAccess>(node_pos->node));
-        result_goto->node = move(node);
-        return move(result_goto);
-    }
-
-    unique_ptr<ParseResult> parse_exec() {
-        unique_ptr<ParseResult> result_exec = make_unique<ParseResult>();
-        unique_ptr<NodeExec> node = make_unique<NodeExec>();
-        variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>> executed;
-
-        if (is_tok_type(toktype::name)) {
-            Token_ name = tokens[idx++];
-            std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
-            if (temp.has_value()) return move(temp.value());
-            executed = make_unique<NodeVarAccess>();
-            get<unique_ptr<NodeVarAccess>>(executed)->var_name_tok = name;
-            node->executed = move(executed);
-            result_exec->node = move(node);
-            return move(result_exec);
-        }
-        else if (is_tok_type(toktype::keyword) && tokens[idx+1].type == toktype::left_paren) {
-            unique_ptr<ParseResult> class_result = move(parse_class_builtin());
-            return move(class_result);
-        }
-        else if (is_tok(toktype::keyword, "goto")) {
-            unique_ptr<ParseResult> goto_result = move(parse_goto());
-            if (!goto_result->error.isEmpty()) return goto_result;
-            std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
-            if (temp.has_value()) return move(temp.value());
-            executed = move(convert_node<variant<unique_ptr<NodeGoto>, unique_ptr<NodeVarAccess>>>(goto_result->node));
-            node->executed = move(executed);
-            result_exec->node = move(node);
-            return move(result_exec);
-        }
-        else {
-            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
-            result_exec->error = ErrorSyntax(parse_position, std::string("EXPECTED NAME OR 'goto' OR 'class builtin', BUT GOT: '") + current_tok.to_string() + std::string("'"));
-            return move(result_exec);
-        }
-    }
-
     unique_ptr<ParseResult> parse_class_builtin() {
         unique_ptr<ParseResult> result_class_builtin = make_unique<ParseResult>();
         unique_ptr<NodeClassBuiltIn> node = make_unique<NodeClassBuiltIn>();
@@ -314,13 +251,71 @@ class Parser {
         return move(result_class_builtin);
     }
 
+    unique_ptr<ParseResult> parse_exec() {
+        unique_ptr<ParseResult> result_exec = make_unique<ParseResult>();
+        unique_ptr<NodeExec> node = make_unique<NodeExec>();
+        variant<unique_ptr<NodeVarAccess>, unique_ptr<NodePosAccess>, unique_ptr<NodeClassBuiltIn>> executed;
+
+        if (!is_tok(toktype::keyword, "goto")) {
+            unique_ptr<ParseResult> expr_result = move(parse_expr());
+            return move(expre_result);
+        }
+        advance(); // 'goto'
+
+        if (is_tok_type(toktype::left_square)) {
+            unique_ptr<ParseResult> pos_result = move(parse_pos());
+            if (!pos_result->error.isEmpty()) return move(pos_result);
+
+            std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
+            if (temp.has_value()) return move(temp.value());
+            idx--;
+
+            executed = move(get<unique_ptr<NodePosAccess>>(pos_result->node));
+
+            node->executed = move(executed);
+            result_exec->node = move(node);
+            return move(result_exec);
+        }
+        else if (is_tok_type(toktype::name)) {
+            Token_ name = tokens[idx++];
+            
+            std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
+            if (temp.has_value()) return move(temp.value());
+            idx--;
+
+            executed = make_unique<NodeVarAccess>();
+            get<unique_ptr<NodeVarAccess>>(executed)->var_name_tok = name;
+
+            node->executed = move(executed);
+            result_exec->node = move(node);
+            return move(result_exec);
+        }
+        else if (is_tok_type(toktype::keyword) && tokens[idx+1].type == toktype::left_paren) {
+            unique_ptr<ParseResult> class_result = move(parse_class_builtin());
+
+            std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
+            if (temp.has_value()) return move(temp.value());
+            idx--;
+
+            executed = move(get<unique_ptr<NodeClassBuiltIn>>(class_result->node));
+            
+            node->executed = move(executed);
+            result_exec->node = move(node);
+            return move(result_exec);
+        }
+        else {
+            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+            result_exec->error = ErrorSyntax(parse_position, std::string("EXPECTED NAME OR 'goto' OR 'class builtin', BUT GOT: '") + current_tok.to_string() + std::string("'"));
+            return move(result_exec);
+        }
+    }
+
     unique_ptr<ParseResult> parse_var_assign() {
         unique_ptr<ParseResult> result_var_assign = make_unique<ParseResult>();
         unique_ptr<NodeVarAssign> node = make_unique<NodeVarAssign>();
         if (!is_tok_type(toktype::name)) {
-            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
-            result_var_assign->error = ErrorSyntax(parse_position, "EXPECTED NAME");
-            return move(result_var_assign);
+            unique_ptr<ParseResult> result_exec = move(parse_exec());
+            return move(result_exec);
         }
         Token_ name = tokens[idx++];
         std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::equal));
@@ -328,6 +323,68 @@ class Parser {
         
         variant<unique_ptr<NodeExec>, unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>> value;
         unique_ptr<ParseResult> parse_result = move(parse_exec());
+        if (!parse_result->error.isEmpty()) return move(parse_result);
+
+        value = move(convert_node<variant<unique_ptr<NodeExec>, unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>>(parse_result->node));
+        node->var_name_tok = name;
+        node->value = move(value);
+        result_var_assign->node = move(node);
+        return move(result_var_assign);
+    }
+
+    unique_ptr<ParseResult> parse_stmt() {
+        unique_ptr<ParseResult> result_stmt = make_unique<ParseResult>();
+        unique_ptr<NodeStmt> node = make_unique<NodeStmt>();
+        unique_ptr<NodePosAccess> pos_access = move(parse_position());
+        if (!pos_access->error.isEmpty()) return move(pos_access);
+        node->pos = move(pos_access);
+
+        while (!is_tok_type(toktype::exc_mark)) {
+            unique_ptr<ParseResult> var_assign_result = move(parse_var_assign());
+            if (!var_assign_result->error.isEmpty()) return move(var_assign_result);
+            node->stmts.push_back(move(var_assign_result->node));
+
+            if (is_tok_type(toktype::semi_colon)) {
+                advance();
+            }
+            else {
+                ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+                result_stmt->error = ErrorSyntax(parse_position, std::string("EXPECTED ';' BUT GOT: '") + current_tok.to_string() + std::string("'"));
+                return move(result_stmt);
+            }
+        }
+        std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::semi_colon));
+    }
+
+    unique_ptr<ParseResult> parse_program() {
+        unique_ptr<ParseResult> result_program = make_unique<ParseResult>();
+
+        unique_ptr<NodeProgram> node = make_unique<NodeProgram>();
+        if (!is_tok_type(toktype::keyword, "ZetriScript")) {
+            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+            node->error = ErrorSyntax(parse_position, "EXPECTED 'ZetriScript' BUT GOT: '" + current_tok.to_string() + "'");
+            return move(node);
+        }
+        advance(); // 'ZetriScript'
+        unique_ptr<ParseResult> entry_pos_result = move(parse_position());
+        if (!entry_pos_result->error.isEmpty()) return move(entry_pos_result);
+        node->entry_pos = move(get<unique_ptr<NodePosAccess>>(entry_pos_result->node));
+
+        if (!is_tok_type(toktype::exc_mark)) {
+            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+            node->error = ErrorSyntax(parse_position, "EXPECTED END OF FILE BUT GOT: '" + current_tok.to_string() + "'");
+            return move(node);
+        }
+        advance(); // '!'
+
+        while (!is_tok_type(toktype::eof)) {
+            unique_ptr<ParseResult> stmt_result = move(parse_stmt());
+            if (!stmt_result->error.isEmpty()) return move(stmt_result);
+            node->stmts.push_back(move(stmt_result->node));
+        }
+
+        result_program->node = move(node);
+        return move(result_program);
     }
 
     private:

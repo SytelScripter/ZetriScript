@@ -61,6 +61,8 @@ public:
             else if (currentChar == '.') addToken_(toktype::dot, '.');
         }
 
+        addToken_(toktype::eof, '\0');
+
         return tokens;
     }
 
