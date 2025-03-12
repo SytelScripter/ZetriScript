@@ -3,19 +3,17 @@
 #include <unordered_map>
 #include <optional>
 
-using finalOutput = std::variant<int, float>;
-
-using possibleReturnValues = std::optional<std::vector<Position>>;
+using string, std::optional;
 
 class SymbolTable {
     public:
-    std::unordered_map<Token_, possibleReturnValues> variables;
+    std::unordered_map<Token_, string> variables;
 
-    void setValue(Token_ ident, possibleReturnValues value) {
+    void setValue(Token_ ident, string value) {
         variables[ident] = value;
     }
 
-    possibleReturnValues getValue(Token_ ident) {
+    optional<string> getValue(Token_ ident) {
         if (!variables.find(ident)) {
             return std::nullopt;
         }
@@ -38,143 +36,93 @@ class Interpreter {
         return false;
     }
 
-    inline Position convertPositionNode(NodePositionAccess node_pos) {
-        Position result = Position(node_pos.x.numTok.value, node_pos.y.numTok.value, node_pos.z.numTok.value);
-        return result;
-    }
-
-    inline bool hasNoDecimal(float num) {
-        return num == static_cast<int>(num);
-    }
-
     public:
-    Interpreter(NodeProg program_) : program(program_) {
-        startingPos.posX = std::move(program.startingPosition.x.numTok.value);
-        startingPos.posY = std::move(program.startingPosition.y.numTok.value);
-        startingPos.posZ = std::move(program.startingPosition.z.numTok.value);
-    }
+    Interpreter(NodeProg program, Position startingPos) : program(program), startingPos(startingPos) {}
 
-    int visitNumber(NodeNumber node) {
-        return std::stoi(node.numTok.value);
-    }
-
-    void visitGoto(NodeGoto goto_) {
-        Position nextPosition = convertPositionNode(goto_.nextPos);
-        bool wentToBeginning = false;
-        while (!comparePos(nextPosition, convertPositionNode(program.code[i].pos))) {
-            if (currentInstruction == 0) {
-                wentToBeginning = true;
-            }
-            if (!wentToBeginning) {
-                currentInstruction--;
-            } else {
-                currentInstruction++;
-            }
-            if (currentInstruction >= program.code.size() || currentInstruction < 0) {
-                std::cout << "ERROR: NO SUCH INSTRUCTION: [" << nextPosition.x << ":" + nextPosition.y << ":" << nextPosition.z << "]\n";
-                return;
-            }
-        }
-        visitSegment(program.code[i]);
-    }
-
-    possibleReturnValues visitLine(NodeLine node) {
-        possibleReturnValues result;
-
-        int start = std::stoi(node.start);
-        int end = std::stoi(node.end);
-        int step = std::stoi(node.step);
-        Position currentPos = convertPositionNode(node.pos1);
-        Position vectorPos = convertPositionNode(node.pos2);
-        int startX = std::stoi(currentPos.xPos);
-        int startY = std::stoi(currentPos.yPos);
-        int startZ = std::stoi(currentPos.zPos);
-        int vecX = std::stoi(vectorPos.xPos);
-        int vecY = std::stoi(vectorPos.yPos);
-        int vecZ = std::stoi(vectorPos.zPos);
-        int x = startX;
-        int y = startY;
-        int z = startZ;
-        for (int t = start; t < end; t += step) {
-            Position temp = Position(std::to_string(x), std::to_string(y), std::to_string(z));
-            result.value().push_back(Position(x, y, z));
-            x = startX + t * vecX;
-            y = startY + t * vecY;
-            z = startZ + t * vecZ;
-        }
-        return result;
-    }
-
-    possibleReturnValues visitVarAccess(NodeVarAccess node) {
-        possibleReturnValues result = globals.getValue(node.identName);
-        if (!result.has_value()) {
-            std::cout << "ERROR: UNDEFINED VARIABLE" << node.identName.value << "\n";
-            return std::nullopt;
-        }
-        return result;
-    }
-
-    possibleReturnValues visitAlloc(NodeAlloc node) {
-        return visitVarAccess(node.allocated);
-    }
-
-    void visitVarAssign(NodeVarAssign var_assign) {
-        possibleReturnValues result;
-        if (std::holds_alternative<NodeLine>(var_assign.value))
-            result = visitLine(std::get<NodeLine>(var_assign.value));
-        else if (std::holds_alternative<NodeVarAccess>(var_assign.value))
-            result = visitVarAccess(std::get<NodeVarAccess>(var_assign.value));
-        else if (std::holds_alternative<NodeAlloc>(var_assign.value))
-            result = visitAlloc(std::get<NodeAlloc>(var_assign.value));
-        globals.setValue(var_assign.ident.identName, result);
-    }
-
-    void visitSegment(NodeSegment segment) {
-        std::vector<possibleReturnValues> segment_result;
-        instruction_pos = 0;
-        while (instruction_pos < segment.content.size()) {
-            auto instruction = segment.content[instruction_pos];
-            if (std::holds_alternative<NodeAlloc>(instruction)) {
-                visitAlloc(std::get<NodeAlloc>(instruction));
-                // segment_result.push_back(visitAlloc(std::get<NodeAlloc>(instruction)));
-                instruction_pos++;
-            }
-            else if (std::holds_alternative<NodeVarAssign>(instruction)) {
-                visitVarAssign(std::get<NodeVarAssign>(instruction));
-                // segment_result.push_back(visitVarAssign(std::get<NodeVarAssign>(instruction)));
-                instruction_pos++;
-            }
-            else if (std::holds_alternative<NodeLine>(instruction)) {
-                visitLine(std::get<NodeLine>(instruction));
-                // segment_result.push_back(visitLine(std::get<NodeLine>(instruction)));
-                instruction_pos++;
-            }
-            else if (std::holds_alternative<NodeVarAccess>(instruction)) {
-                visitIdentifier(std::get<NodeVarAccess>(instruction));
-                // segment_result.push_back(visitIdentifier(std::get<NodeVarAccess>(instruction)));
-                instruction_pos++;
-            }
-            else if (std::holds_alternative<NodeNumber>(instruction)) {
-                visitNumber(std::get<NodeNumber>(instruction));
-                // segment_result.push_back(visitNumber(std::get<NodeNumber>(instruction)));
-                instruction_pos++;
-            }
-            else if (std::holds_alternative<NodeGoto>(instruction)) {
-                visitGoto(std::get<NodeGoto>(instruction));
-                // segment_result.push_back(visitGoto(std::get<NodeGoto>(instruction)));
-                instruction_pos++;
-            }
+    string visitNodeNumber(unique_ptr<NodeNumber> node) {
+        if (node->value.type == toktype::int_lit) {
+            return node->num_tok.value;
         }
     }
 
-    void visitProg() {
-        while (!comparePos(startingPos, convertPositionNode(program.code[currentInstruction].pos))) {
-            currentInstruction++;
-            if (currentInstruction >= program.code.size()) {
-                std::cout << "ERROR: NO SUCH INSTRUCTION: [" << startingPos.xPos << ":" + startingPos.yPos << ":" << startingPos.zPos << "]\n";
-                return;
-            }
+    string visitNodeVarAccess(unique_ptr<NodeVarAccess> node) {
+        optional<string> value = globals.getValue(node->var_name_tok);
+        if (value.has_value()) {
+            return value.value();
         }
-        visitSegment(program.code[currentInstruction]);
+        else {
+            throw std::runtime_error("Variable not found: " + node->var_name_tok.value);
+        }
+    }
+
+    string visitNodeBinOp(unique_ptr<NodeBinOp> node) {
+        string left = visitExpr(node->left);
+        string right = visitExpr(node->right);
+        if (node->op.type == toktype::plus) {
+            return std::to_string(std::stoi(left) + std::stoi(right));
+        } else if (node->op.type == toktype::minus) {
+            return std::to_string(std::stoi(left) - std::stoi(right));
+        } else if (node->op.type == toktype::mul) {
+            return std::to_string(std::stoi(left) * std::stoi(right));
+        } else if (node->op.type == toktype::div) {
+            if (std::stoi(right) == 0) {
+                throw std::runtime_error("Division by zero");
+            }
+            return std::to_string(std::stoi(left) / std::stoi(right));
+        }
+    }
+
+    string visitNodeExec(unique_ptr<NodeExec> node) {
+        visit([](auto&& node) -> string {
+            using T = std::decay_t<decltype(node)>;
+            if (std::is_same_v<T, unique_ptr<NodeVarAccess>>) {
+                return globals.getValue(node->var_name_tok);
+            }
+            else if (std::is_same_v<T, unique_ptr<NodePosAccess>>) {
+                return visitNodePosAccess
+            }
+        }, node->executed)
+    }
+
+    ParsePosition visitNodePosAccess(unique_ptr<NodePosAccess> node) {
+        // bintype x = move(node->x);
+        // bintype y = move(node->y);
+        // bintype z = move(node->z);
+        string x, y, z;
+        if (std::holds_alternative<NodeNumber>(node->x))
+            x = visitNodeNumber(node->x);
+        else if (std::holds_alternative<NodeBinOp>(node->x))
+            x = visitNodeBinOp(node->x);
+        else if (std::holds_alternative<NodeVarAccess>(node->x))
+            x = visitNodeVarAccess(node->x);
+
+        if (std::holds_alternative<NodeNumber>(node->y))
+            y = visitNodeNumber(node->y);
+        else if (std::holds_alternative<NodeBinOp>(node->y))
+            y = visitNodeBinOp(node->y);
+        else if (std::holds_alternative<NodeVarAccess>(node->y))
+            y = visitNodeVarAccess(node->y);
+
+        if (std::holds_alternative<NodeNumber>(node->z))
+            z = visitNodeNumber(node->z);
+        else if (std::holds_alternative<NodeBinOp>(node->z))
+            z = visitNodeBinOp(node->z);
+        else if (std::holds_alternative<NodeVarAccess>(node->z))
+            z = visitNodeVarAccess(node->z);
+
+        return ParsePosition(x, y, z);
+    }
+
+    void execute(unique_ptr<NodeProg> program) {
+        // first all the positions
+        ParsePosition entry_pos = visitNodePosAccess(program->entry_pos);
+        std::vector<ParsePosition> positions;
+        for (auto&& stmt : porgram->stmts) {
+            
+            stmt->eval_pos = visitNodePosAccess(move(stmt));
+        }
+        // then execute the instructions
+        
+
     }
 };

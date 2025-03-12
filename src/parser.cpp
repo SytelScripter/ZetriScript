@@ -83,6 +83,7 @@ struct NodePosAccess {
 };
 
 struct NodeStmt {
+    ParsePosition eval_pos;
     unique_ptr<NodePosAccess> pos;
     vector<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>> stmts;
 };
