@@ -25,11 +25,13 @@ $$
 \text{VAR\_ACCESS} &\to \text{IDENTIFIER} \\
 \text{EXEC} &\to 
     \begin{cases}
+        \text{GOTO} \\
         \text{VAR\_ACCESS} \\
         \text{KEYWORD} \\
         \text{CLASSBUILTIN} \\
     \end{cases}
     ! \\
+\text{GOTO} &\to goto\space\text{POS\_ACCESS}\\
 \text{EXPR} &\to \text{TERM} 
     \begin{cases} 
         \text{PLUS} \\ 

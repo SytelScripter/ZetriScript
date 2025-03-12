@@ -11,6 +11,7 @@
 // declaration of all nodes
 struct NodeNumber;
 struct NodeBinOp;
+struct NodeGoto;
 struct NodeExec;
 struct NodeClassBuiltIn;
 struct NodeVarAssign;
@@ -38,6 +39,7 @@ using anyNode = variant<
     unique_ptr<NodeVarAssign>, 
     unique_ptr<NodeClassBuiltIn>, 
     unique_ptr<NodeExec>, 
+    unique_ptr<NodeGoto>,
     unique_ptr<NodeBinOp>, 
     unique_ptr<NodeNumber>
 >;
@@ -46,58 +48,52 @@ using bintype = variant<
     unique_ptr<NodeBinOp>,
     unique_ptr<NodeVarAccess>
 >;
-const int nodesLen = 9;
 
 // definitions of all nodes
 struct NodeNumber {
-    int type = 8;
     Token_ num_tok;
 };
 
 struct NodeBinOp {
-    int type = 7;
     bintype left;
     Token_ op_tok;
     bintype right;
 };
 
+struct NodeGoto {
+    unique_ptr<NodePosAccess> pos;
+};
+
 struct NodeExec {
-    int type = 6;
     variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>> executed;
 };
 
 struct NodeClassBuiltIn {
-    int type = 5;
     Token_ class_name_tok;
     vector<variant<unique_ptr<ParsePosition>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>> args;
 };
 
 struct NodeVarAssign {
-    int type = 4;
     Token_ var_name_tok;
     variant<unique_ptr<NodeExec>, unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>> value;
 };
 
 struct NodeVarAccess {
-    int type = 3;
     Token_ var_name_tok;
 };
 
 struct NodePosAccess {
-    int type = 2;
     variant<bintype> x;
     variant<bintype> y;
     variant<bintype> z;
 };
 
 struct NodeStmt {
-    int type = 1;
     ParsePosition pos;
     vector<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>> stmts;
 };
 
 struct NodeProg {
-    int type = 0;
     NodePosAccess entry_pos;
     vector<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>> prog;
 };
@@ -232,12 +228,33 @@ class Parser {
         return parse_result<unique_ptr<NodeBinOp>>(move(node));
     }
 
+    unique_ptr<ParseResult> parse_goto() {
+        unique_ptr<ParseResult> result_goto = make_unique<ParseResult>();
+        unique_ptr<NodeGoto> node = make_unique<NodeGoto>();
+
+        if (!is_tok(toktype::keyword, "goto")) {
+            unique_ptr<ParseResult> node_pos = move(parse_position());
+            return move(node_pos);
+        }
+        advance(); // 'goto'
+        unique_ptr<ParseResult> node_pos = move(parse_position());
+        if (!node_pos->error.isEmpty()) return node_pos;
+        if (!holds_alternative<NodePosAccess>(node_pos->node)) {
+            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+            result_goto->error = ErrorSyntax(parse_position, std::string("EXPECTED NodePosAccess"));
+            return move(result_goto);
+        }
+        node->target_pos = move(get<NodePosAccess>(node_pos->node));
+        result_goto->node = move(node);
+        return move(result_goto);
+    }
+
     unique_ptr<ParseResult> parse_exec() {
         unique_ptr<ParseResult> result_exec = make_unique<ParseResult>();
         unique_ptr<NodeExec> node = make_unique<NodeExec>();
         variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>> executed;
 
-        if (is_tok_type(toktype::name) || is_tok(toktype::keyword, "goto")) {
+        if (is_tok_type(toktype::name)) {
             Token_ name = tokens[idx++];
             std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
             if (temp.has_value()) return move(temp.value());
@@ -251,11 +268,21 @@ class Parser {
             unique_ptr<ParseResult> class_result = parse_class_builtin();
             if (class_result->error.isEmpty()) return class_result;
             executed = move(convert_node<variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>>>(class_result->node));
+            unique_ptr<ParseResult> class_result = make_unique<ParseResult>();
+            unique_ptr<NodeClassBuiltIn> class_builtin = get<unique_ptr<NodeClassBuiltIn>>(executed);
+            class_builtin->node = move(class_builtin);
+            return move(class_builtin);
+        }
+        else if (is_tok(toktype::keyword, "goto")) {
+            unique_ptr<ParseResult> goto_result = move(parse_goto());
+            if (!goto_result->error.isEmpty()) return goto_result;
             std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
             if (temp.has_value()) return move(temp.value());
-            node->executed = move(executed);
-            result_exec->node = move(node);
-            return move(result_exec);
+            executed = move(convert_node<variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>>>(goto_result->node));
+            unique_ptr<ParseResult> goto_result = make_unique<ParseResult>();
+            unique_ptr<NodeGoto> goto_node = get<unique_ptr<NodeGoto>>(executed);
+            goto_node->node = move(goto_node);
+            return move(goto_node);
         }
         else {
             ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
@@ -291,6 +318,22 @@ class Parser {
         node->args = move(args);
         result_class_builtin->node = move(node);
         return move(result_class_builtin);
+    }
+
+    unique_ptr<ParseResult> parse_var_assign() {
+        unique_ptr<ParseResult> result_var_assign = make_unique<ParseResult>();
+        unique_ptr<NodeVarAssign> node = make_unique<NodeVarAssign>();
+        if (!is_tok_type(toktype::name)) {
+            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+            result_var_assign->error = ErrorSyntax(parse_position, "EXPECTED NAME");
+            return move(result_var_assign);
+        }
+        Token_ name = tokens[idx++];
+        std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::equal));
+        if (temp.has_value()) return move(temp.value());
+        
+        variant<unique_ptr<NodeExec>, unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>> value;
+        unique_ptr<ParseResult> parse_result = move(parse_exec());
     }
 
     private:
