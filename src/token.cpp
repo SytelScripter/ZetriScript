@@ -91,6 +91,10 @@ class Token_ {
         result += "(" + std::to_string(posStart.line) + ", " + std::to_string(posStart.col) + ") - (" + std::to_string(posEnd.line) + ", " + std::to_string(posEnd.col) + ")";
         return result;
     }
+
+    bool operator==(const Token_& other) const {
+        return type == other.type && value == other.value && posStart == other.posStart && posEnd == other.posEnd;
+    }
 };
 
 inline std::string toktype_to_string(toktype type) {
