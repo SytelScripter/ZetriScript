@@ -211,7 +211,7 @@ class Parser {
         if (std::is_same_v<nodeT, NodePosAccess>) return 2;
         if (std::is_same_v<nodeT, NodeStmt>) return 1;
         if (std::is_same_v<nodeT, NodeProg>) return 0;
-        else std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
+        else throw std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
     }
 
 };
