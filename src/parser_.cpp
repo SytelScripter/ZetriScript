@@ -122,6 +122,11 @@ class ParseResult {
         // Recursively check the next type in the pack if not matched
         return extract_node_impl<Types...>();
     }
+
+    template <>
+    std::unique_ptr<void> extract_node_impl<>() {
+        throw std::runtime_error("Unexpected type in variant");
+    }
 };
 
 class Parser {
