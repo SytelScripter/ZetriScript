@@ -25,14 +25,14 @@ ZetriScript [0:0:0]!
 
 // Define a non-spatial custom system
 [0:0:20] {
-    SYSTEM NON_SPATIAL_SYSTEM:
+    system NON_SPATIAL_SYSTEM:
         // Define specific commands and rules for this system
-        COMMAND CALCULATE<x, y>:
+        command CALCULATE<x, y>:
             result = x + y!  // Simple calculation
             PRINT result!    // Output the result
         END
 
-        COMMAND DATA_PROCESS<data>:
+        command DATA_PROCESS<data>:
             // Process data without spatial context
             PROCESSED_DATA = process(data)
             PRINT PROCESSED_DATA!
