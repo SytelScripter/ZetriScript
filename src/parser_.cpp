@@ -120,7 +120,7 @@ class Parser {
 
             temp_result = move(parse_factor());
             if (!temp_result->error.isEmpty()) return temp_result;
-            node->right = visit_node(move(temp_result), parse_factor);
+            node->right = visit_node(move(temp_result), [this]() { return parse_factor(); });
         }
 
         return parse_result(move(node));
@@ -155,7 +155,7 @@ class Parser {
         temp_result = move(node_visited());
         if (!temp_result->error.isEmpty()) return move(temp_result);
         return move(std::visit(
-            [](auto&& arg) -> unique_ptr<ParseResult> {
+            [this](auto&& arg) -> unique_ptr<ParseResult> { // Capture `this` to access non-static members
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T, std::unique_ptr<NodeNumber>> ||
                               std::is_same_v<T, std::unique_ptr<NodeBinOp>> ||
@@ -168,4 +168,5 @@ class Parser {
             temp_result->node
         ));
     }
+    
 };
