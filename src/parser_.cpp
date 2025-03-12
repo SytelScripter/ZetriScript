@@ -140,7 +140,7 @@ class Parser {
 
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
-        unique_ptr<ParseResult> result_term = parse_factor();
+        unique_ptr<ParseResult> result_term = move(parse_factor());
         
         if (!result_term->error.isEmpty()) return result_term;
         node->left = move(visit([](const auto&& value) -> bintype {
@@ -162,7 +162,7 @@ class Parser {
             advance();
             node->op_tok = op_tok;
 
-            result_term->register_([this]() { return parse_factor(); });
+            result_term = move(parse_factor());
             if (!result_term->error.isEmpty()) return result_term;
             node->right = move(visit([](auto&& value) -> bintype {
                 using T = std::decay_t<decltype(value)>;
