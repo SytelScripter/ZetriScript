@@ -158,8 +158,8 @@ class Parser {
 
         result->register_([this]() { return parse_factor(); });
         if (!result->error.isEmpty()) return result;
-        node->left = move(result->extract_node(types));
-
+        // node->left = move(result->extract_node(types));
+        node->left = move(result->extract_node());
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
             Token_ op_tok = current_tok;
