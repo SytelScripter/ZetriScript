@@ -139,38 +139,38 @@ class Parser {
         }
 
     unique_ptr<ParseResult> parse_factor() {
-        unique_ptr<ParseResult> result = make_unique<ParseResult>();
+        unique_ptr<ParseResult> result_factor = make_unique<ParseResult>();
 
         Token_ value = tokens[idx++];
         unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
         node->num_tok = value;
 
-        result->node = move(node);
+        result_factor->node = move(node);
 
-        return move(result);
+        return move(result_factor);
     }
 
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
-        unique_ptr<ParseResult> result = make_unique<ParseResult>();
+        unique_ptr<ParseResult> result_term = make_unique<ParseResult>();
         // std::vector<int> types = { get_i<unique_ptr<NodeNumber>>(), get_i<unique_ptr<NodeBinOp>>(), get_i<unique_ptr<NodeVarAccess>>() }; // {8, 7, 3}
 
         unique_ptr<NodeStmt> test = make_unique<NodeStmt>();
-        result->node = move(test);
+        result_term->node = move(test);
         // result->register_([this]() { return parse_factor(); });
-        if (!result->error.isEmpty()) return result;
+        if (!result_term->error.isEmpty()) return result;
         // node->left = move(result->extract_node(types));
-        node->left = move(result->extract_node());
+        node->left = move(result_term->extract_node());
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
             Token_ op_tok = current_tok;
             advance();
             node->op_tok = op_tok;
 
-            result->register_([this]() { return parse_factor(); });
-            if (!result->error.isEmpty()) return result;
+            result_term->register_([this]() { return parse_factor(); });
+            if (!result_term->error.isEmpty()) return result;
             // node->right = move(result->extract_node(types));
-            node->right = move(result->extract_node());
+            node->right = move(result_term->extract_node());
         }
 
         return parse_result<unique_ptr<NodeBinOp>>(move(node));
