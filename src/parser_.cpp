@@ -85,9 +85,9 @@ struct NodeVarAccess {
 
 struct NodePosAccess {
     int type = 2;
-    variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> x;
-    variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> y;
-    variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> z;
+    variant<bintype> x;
+    variant<bintype> y;
+    variant<bintype> z;
 };
 
 struct NodeStmt {
@@ -132,14 +132,14 @@ class Parser {
         }
         advance(); // '['
         unique_ptr<NodePosAccess> node = make_unique<NodePosAccess>();
-        node->x = parse_expr();
+        node->x = move(parse_expr());
         std::optional<unique_ptr<ParseResult>> temp1 = check_error(toktype::comma);
         if (temp1.has_value()) return move(temp1.value());
         advance(); // ','
-        node->y = parse_expr();
+        node->y = move(parse_expr());
         std::optional<unique_ptr<ParseResult>> temp2 = check_error(toktype::comma);
         if (temp2.has_value()) return move(temp2.value());
-        node->z = parse_expr();
+        node->z = move(parse_expr());
         std::optional<unique_ptr<ParseResult>> temp3 = check_error(toktype::right_square);
         if (temp3.has_value()) return move(temp3.value());
         advance(); // ']'
@@ -275,7 +275,7 @@ class Parser {
         while (idx < tokens.size() && !is_tok_type(toktype::right_paren)) {
             unique_ptr<ParseResult> parse_result = move(parse_position());
             if (!parse_result->error.isEmpty()) return move(parse_result);
-            args.push_back(move(parse_result->node));
+            args.push_back(move(convert_node<variant<unique_ptr<ParsePosition>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>>(parse_result->node)));
             if (idx < tokens.size() && is_tok_type(toktype::comma)) {
                 advance();
             }
