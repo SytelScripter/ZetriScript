@@ -217,7 +217,6 @@ class Parser {
             unique_ptr<NodeClassBuiltIn> executed = parse_class_builtin();
             std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
             if (temp.has_value()) return temp.value();
-            executed->class_name_tok = node->class_name_tok;
             node->executed = move(executed);
             result_exec->node = move(node);
             return move(result_exec);
