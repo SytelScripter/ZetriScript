@@ -359,7 +359,7 @@ class Parser {
     unique_ptr<ParseResult> parse_program() {
         unique_ptr<ParseResult> result_program = make_unique<ParseResult>();
 
-        unique_ptr<NodeProgram> node = make_unique<NodeProgram>();
+        unique_ptr<NodeProg> node = make_unique<NodeProg>();
         if (!is_tok_type(toktype::keyword, "ZetriScript")) {
             ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
             node->error = ErrorSyntax(parse_position, "EXPECTED 'ZetriScript' BUT GOT: '" + current_tok.to_string() + "'");
