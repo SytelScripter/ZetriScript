@@ -117,18 +117,6 @@ class ParseResult {
         error = move(temp->error);
         return;
     }
-
-    auto extract_node() {
-        if (auto ptr = std::get_if<unique_ptr<NodeProg>>(&node)) return std::move(*ptr);
-        if (auto ptr = std::get_if<unique_ptr<NodeStmt>>(&node)) return std::move(*ptr);
-        if (auto ptr = std::get_if<unique_ptr<NodePosAccess>>(&node)) return std::move(*ptr);
-        if (auto ptr = std::get_if<unique_ptr<NodeVarAccess>>(&node)) return std::move(*ptr);
-        if (auto ptr = std::get_if<unique_ptr<NodeVarAssign>>(&node)) return std::move(*ptr);
-        if (auto ptr = std::get_if<unique_ptr<NodeClassBuiltIn>>(&node)) return std::move(*ptr);
-        if (auto ptr = std::get_if<unique_ptr<NodeExec>>(&node)) return std::move(*ptr);
-        if (auto ptr = std::get_if<unique_ptr<NodeBinOp>>(&node)) return std::move(*ptr);
-        if (auto ptr = std::get_if<unique_ptr<NodeNumber>>(&node)) return std::move(*ptr);
-    }
 };
 
 class Parser {
@@ -157,10 +145,20 @@ class Parser {
 
         unique_ptr<NodeStmt> test = make_unique<NodeStmt>();
         result_term->node = move(test);
-        // result->register_([this]() { return parse_factor(); });
         if (!result_term->error.isEmpty()) return result_term;
-        // node->left = move(result->extract_node(types));
-        node->left = move(result_term->extract_node());
+        node->left = move(visit([](const auto&& value) -> bintype {
+            using T = std::decay_t<decltype(value)>;
+            bintype result;
+            if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
+                result = value;
+            else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
+                result = value;
+            else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
+                result = value;
+            else 
+                throw std::runtime_error("Invalid token type in parse_term");
+            return result;
+        }, result_term->node));
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
             Token_ op_tok = current_tok;
@@ -170,7 +168,19 @@ class Parser {
             result_term->register_([this]() { return parse_factor(); });
             if (!result_term->error.isEmpty()) return result_term;
             // node->right = move(result->extract_node(types));
-            node->right = move(result_term->extract_node());
+            node->right = move(visit([](const auto&& value) -> bintype {
+                using T = std::decay_t<decltype(value)>;
+                bintype result;
+                if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
+                    result = value;
+                else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
+                    result = value;
+                else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
+                    result = value;
+                else 
+                    throw std::runtime_error("Invalid token type in parse_term");
+                return result;
+            }, result_term->node));
         }
 
         return parse_result<unique_ptr<NodeBinOp>>(move(node));
