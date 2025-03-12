@@ -117,6 +117,7 @@ class ParseResult {
         else if (holds_alternative<unique_ptr<NodeExec>>(node)) return move(get<unique_ptr<NodeExec>>(node));
         else if (holds_alternative<unique_ptr<NodeBinOp>>(node)) return move(get<unique_ptr<NodeBinOp>>(node));
         else if (holds_alternative<unique_ptr<NodeNumber>>(node)) return move(get<unique_ptr<NodeNumber>>(node));
+        else throw std::runtime_error("Unexpected type in variant");
     }
 };
 
