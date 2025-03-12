@@ -133,15 +133,15 @@ class Parser {
         advance(); // '['
         unique_ptr<NodePosAccess> node = make_unique<NodePosAccess>();
         node->x = parse_expr();
-        std::optional<unique_ptr<ParseResult>> temp = check_error(toktype::comma);
-        if (temp.has_value()) return move(temp.value());
+        std::optional<unique_ptr<ParseResult>> temp1 = check_error(toktype::comma);
+        if (temp1.has_value()) return move(temp1.value());
         advance(); // ','
         node->y = parse_expr();
-        std::optional<unique_ptr<ParseResult>> temp = check_error(toktype::comma);
-        if (temp.has_value()) return move(temp.value());
+        std::optional<unique_ptr<ParseResult>> temp2 = check_error(toktype::comma);
+        if (temp2.has_value()) return move(temp2.value());
         node->z = parse_expr();
-        std::optional<unique_ptr<ParseResult>> temp = check_error(toktype::right_square);
-        if (temp.has_value()) return move(temp.value());
+        std::optional<unique_ptr<ParseResult>> temp3 = check_error(toktype::right_square);
+        if (temp3.has_value()) return move(temp3.value());
         advance(); // ']'
         result_position->node = move(node);
         return move(result_position);
@@ -242,7 +242,9 @@ class Parser {
             return move(result_exec);
         }
         else if (is_tok_type(toktype::keyword) && tokens[idx+1].type == toktype::left_paren) {
-            executed = parse_class_builtin();
+            unique_ptr<ParseResult> class_result = parse_class_builtin();
+            if (class_result->error.isEmpty()) return class_result;
+            executed = move(class_result->node);
             std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
             if (temp.has_value()) return move(temp.value());
             node->executed = move(executed);
@@ -269,11 +271,11 @@ class Parser {
         if (temp.has_value()) return move(temp.value());
         advance(); // '('
 
-        vector<variant<ParsePosition, unique_ptr<NodeExpr>>> args;
+        vector<variant<unique_ptr<ParsePosition>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>> args;
         while (idx < tokens.size() && !is_tok_type(toktype::right_paren)) {
-            ParseResult parse_result = parse_expr();
-            if (!parse_result.error.isEmpty()) return move(parse_result);
-            args.push_back(parse_result.node);
+            unique_ptr<ParseResult> parse_result = move(parse_position());
+            if (!parse_result->error.isEmpty()) return move(parse_result);
+            args.push_back(parse_result->node);
             if (idx < tokens.size() && is_tok_type(toktype::comma)) {
                 advance();
             }
