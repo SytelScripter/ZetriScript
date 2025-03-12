@@ -377,7 +377,7 @@ class Parser {
         }
         advance(); // '!'
 
-        while (!is_tok_type(toktype::eof)) {
+        while (!is_tok_type(toktype::eof_)) {
             unique_ptr<ParseResult> stmt_result = move(parse_stmt());
             if (!stmt_result->error.isEmpty()) return move(stmt_result);
             node->stmts.push_back(move(stmt_result->node));
