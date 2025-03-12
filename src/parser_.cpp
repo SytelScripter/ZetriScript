@@ -214,10 +214,9 @@ class Parser {
             return move(result_exec);
         }
         else if (is_tok_type(toktype::keyword) && tokens[idx+1].type == toktype::left_paren) {
-            unique_ptr<NodeClassBuiltIn> node = parse_class_builtin();
+            unique_ptr<NodeClassBuiltIn> executed = parse_class_builtin();
             std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
             if (temp.has_value()) return temp.value();
-            executed = make_unique<NodeClassBuiltIn>();
             executed->class_name_tok = node->class_name_tok;
             node->executed = move(executed);
             result_exec->node = move(node);
