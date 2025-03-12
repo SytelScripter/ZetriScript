@@ -203,7 +203,7 @@ class Parser {
         constexpr size_t variant_size = std::variant_size_v<variantT>;
         return move(visit([](auto&& value) -> variantT {
             using T = std::decay_t<decltype(value)>;
-            for (int i = 0; i < variant_size; i++) {
+            for (size_t i = 0; i < variant_size; i++) {
                 using TypeT = typename std::variant_alternative<i, variantT>::type;
                 if constexpr(std::is_same_v<T, TypeT>) {
                     return variantT{move(std::get<i>(value))};
