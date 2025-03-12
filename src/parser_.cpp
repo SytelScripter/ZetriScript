@@ -89,7 +89,7 @@ struct NodeStmt {
 
 struct NodeProg {
     unique_ptr<NodePosAccess> entry_pos;
-    vector<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>> prog;
+    vector<unique_ptr<NodeStmt>> prog;
 };
 
 
@@ -380,7 +380,7 @@ class Parser {
         while (!is_tok_type(toktype::eof_)) {
             unique_ptr<ParseResult> stmt_result = move(parse_stmt());
             if (!stmt_result->error.isEmpty()) return move(stmt_result);
-            node->prog.push_back(move(stmt_result->node));
+            node->prog.push_back(move(get<NodeStmt>(stmt_result->node)));
         }
 
         result_program->node = move(node);
