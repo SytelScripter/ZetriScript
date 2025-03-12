@@ -107,16 +107,6 @@ class ParseResult {
     ErrorSyntax error;
 
     ParseResult() {}
-
-    inline void register_(function<unique_ptr<ParseResult>()> parse_func) {
-        unique_ptr<ParseResult> temp = move(parse_func());
-        if (temp->error.isEmpty()) {
-            node = move(temp->extract_node());
-            return;
-        }
-        error = move(temp->error);
-        return;
-    }
 };
 
 class Parser {
