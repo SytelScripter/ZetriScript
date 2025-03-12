@@ -119,26 +119,16 @@ class ParseResult {
     }
 
     // extract node extracts from the node variant existing, but it doesn't check every type, it checks only types that are given in the function.
-    auto extract_node(std::vector<int> types) {
-        int existing_type = node.index();
-        for (int type : types) {
-            if (type == existing_type) {
-                switch (type) {
-                    case 0: return std::move(std::get<std::unique_ptr<NodeProg>>(node));
-                    case 1: return std::move(std::get<std::unique_ptr<NodeStmt>>(node));
-                    case 2: return std::move(std::get<std::unique_ptr<NodePosAccess>>(node));
-                    case 3: return std::move(std::get<std::unique_ptr<NodeVarAccess>>(node));
-                    case 4: return std::move(std::get<std::unique_ptr<NodeVarAssign>>(node));
-                    case 5: return std::move(std::get<std::unique_ptr<NodeClassBuiltIn>>(node));
-                    case 6: return std::move(std::get<std::unique_ptr<NodeExec>>(node));
-                    case 7: return std::move(std::get<std::unique_ptr<NodeBinOp>>(node));
-                    case 8: return std::move(std::get<std::unique_ptr<NodeNumber>>(node));
-                    default:
-                        throw std::runtime_error("Invalid type index in variant");
-                }
-            }
-        }
-        throw std::runtime_error("Invalid node type");
+    auto extract_node() {
+        if (auto ptr = std::get_if<unique_ptr<NodeProg>>(&node)) return std::move(*ptr);
+        if (auto ptr = std::get_if<unique_ptr<NodeStmt>>(&node)) return std::move(*ptr);
+        if (auto ptr = std::get_if<unique_ptr<NodePosAccess>>(&node)) return std::move(*ptr);
+        if (auto ptr = std::get_if<unique_ptr<NodeVarAccess>>(&node)) return std::move(*ptr);
+        if (auto ptr = std::get_if<unique_ptr<NodeVarAssign>>(&node)) return std::move(*ptr);
+        if (auto ptr = std::get_if<unique_ptr<NodeClassBuiltIn>>(&node)) return std::move(*ptr);
+        if (auto ptr = std::get_if<unique_ptr<NodeExec>>(&node)) return std::move(*ptr);
+        if (auto ptr = std::get_if<unique_ptr<NodeBinOp>>(&node)) return std::move(*ptr);
+        if (auto ptr = std::get_if<unique_ptr<NodeNumber>>(&node)) return std::move(*ptr);
     }
 };
 
@@ -164,7 +154,7 @@ class Parser {
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
-        std::vector<int> types = { get_i<unique_ptr<NodeNumber>>(), get_i<unique_ptr<NodeBinOp>>(), get_i<unique_ptr<NodeVarAccess>>() }; // {8, 7, 3}
+        // std::vector<int> types = { get_i<unique_ptr<NodeNumber>>(), get_i<unique_ptr<NodeBinOp>>(), get_i<unique_ptr<NodeVarAccess>>() }; // {8, 7, 3}
 
         result->register_([this]() { return parse_factor(); });
         if (!result->error.isEmpty()) return result;
@@ -210,19 +200,19 @@ class Parser {
         return result;
     }
 
-    template <typename nodeT>
-    int get_i() {
-        if      (std::is_same_v<nodeT, unique_ptr<NodeNumber>>) return 8;
-        else if (std::is_same_v<nodeT, unique_ptr<NodeBinOp>>) return 7;
-        else if (std::is_same_v<nodeT, unique_ptr<NodeExec>>) return 6;
-        else if (std::is_same_v<nodeT, unique_ptr<NodeClassBuiltIn>>) return 5;
-        else if (std::is_same_v<nodeT, unique_ptr<NodeVarAssign>>) return 4;
-        else if (std::is_same_v<nodeT, unique_ptr<NodeVarAccess>>) return 3;
-        else if (std::is_same_v<nodeT, unique_ptr<NodePosAccess>>) return 2;
-        else if (std::is_same_v<nodeT, unique_ptr<NodeStmt>>) return 1;
-        else if (std::is_same_v<nodeT, unique_ptr<NodeProg>>) return 0;
-        else throw std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
-    }
+    // template <typename nodeT>
+    // int get_i() {
+    //     if (std::is_same_v<nodeT, unique_ptr<NodeProg>>) return 0;
+    //     if (std::is_same_v<nodeT, unique_ptr<NodeStmt>>) return 1;
+    //     if (std::is_same_v<nodeT, unique_ptr<NodePosAccess>>) return 2;
+    //     if (std::is_same_v<nodeT, unique_ptr<NodeVarAccess>>) return 3;
+    //     if (std::is_same_v<nodeT, unique_ptr<NodeVarAssign>>) return 4;
+    //     if (std::is_same_v<nodeT, unique_ptr<NodeClassBuiltIn>>) return 5;
+    //     if (std::is_same_v<nodeT, unique_ptr<NodeExec>>) return 6;
+    //     if (std::is_same_v<nodeT, unique_ptr<NodeBinOp>>) return 7;
+    //     if (std::is_same_v<nodeT, unique_ptr<NodeNumber>>) return 8;
+    //     else throw std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
+    // }
 
 };
 
