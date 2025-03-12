@@ -108,21 +108,20 @@ class ParseResult {
         return;
     }
 
-    template<typename T, typename... Args>
-    inline T extract_node(Args&&... args) {
-        return get<T>(node, forward<Args>(args)...);
-        // return variant_cast<T>(node);
-        // return any_cast<T>(node);
-    
-        // return std::get<T>(node);
-    
-        // return std::visit([](auto&& arg) -> T {
-        //     if (auto* ptr = std::get_if<T>(&arg)) {
-        //         return *ptr;
-        //     } else {
-        //         throw std::bad_cast();
-        //     }
-        // }, node);
+    // extract node extracts from the node variant existing, but it doesn't check every type, it checks only types that are given in the function.
+    template <typename... Ts>
+    inline auto extract_node() const {
+        // Loop through the types provided as template parameters.
+        // This way, we don't need recursion, just a single pass through the types.
+        (void)std::initializer_list<int>{(
+            // Check if the variant holds this type and return the corresponding pointer
+            if (holds_alternative<Ts>(node)) {
+                return std::get<Ts>(node).get();
+            }
+            , 0)...};
+
+        // If no matching type is found, throw an exception.
+        throw std::runtime_error("Parser::extract_node(): Invalid node type");
     }
 };
 
