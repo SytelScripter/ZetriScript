@@ -120,9 +120,40 @@ class Interpreter {
         for (auto&& stmt : porgram->stmts) {
             
             stmt->eval_pos = visitNodePosAccess(move(stmt));
+
+            // for test
+            std::cout << stmt->eval_pos.display() << std::endl;
         }
         // then execute the instructions
         
 
     }
 };
+
+int main() {
+    // your test cases here
+    std::string test = "ZetriScript [0:0:0]!\n
+    \n
+    [0:0:1]: func1 = allocSpace(l1); goto [0:0:3]!\n
+    [0:0:0]: l1 = LINE([0:0:3],[0:0:1],0,5,1); goto [0:0:1]!\n
+    [0:0:3]: goto func1!\n
+    \n
+    ZetriScript";
+    Lexer lexer = Lexer(test);
+    std::vector<Token_> tokens = lexer.makeTokens();
+    Parser parser(tokens);
+    unique_ptr<ParseResult> result = parser.parse_term();
+    // if (result->error.isEmpty()) {
+    //     // process the parsed result
+    //     //...
+    // } else {
+    //     // handle the error
+    //     //...
+    // }
+
+    unique_ptr<NodeProg> program = std::move(result->node);
+    Interpreter interpreter(program, ParsePosition(0, 0, 0));
+    interpreter.execute(program);
+
+    return 0;
+}
