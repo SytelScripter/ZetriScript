@@ -132,13 +132,7 @@ class Interpreter {
 
 int main() {
     // your test cases here
-    std::string test = "ZetriScript [0:0:0]!
-
-    [0:0:1]: func1 = allocSpace(l1); goto [0:0:3]!
-    [0:0:0]: l1 = LINE([0:0:3],[0:0:1],0,5,1); goto [0:0:1]!
-    [0:0:3]: goto func1!
-
-    ZetriScript";
+    std::string test = "ZetriScript [0:0:0]! [0:0:1]: func1 = allocSpace(l1); goto [0:0:3]! [0:0:0]: l1 = LINE([0:0:3],[0:0:1],0,5,1); goto [0:0:1]! [0:0:3]: goto func1! ZetriScript";
     Lexer lexer = Lexer(test);
     std::vector<Token_> tokens = lexer.makeTokens();
     Parser parser(tokens);
