@@ -225,3 +225,21 @@ class Parser {
     }
 
 };
+
+int main() {
+    // your test cases here
+    std::string test = "1 + 2";
+    Lexer lexer = Lexer(test);
+    std::vector<Token_> tokens = lexer.tokenize();
+    Parser parser(tokens);
+    unique_ptr<ParseResult> result = parser.parse_term();
+    // if (result->error.isEmpty()) {
+    //     // process the parsed result
+    //     //...
+    // } else {
+    //     // handle the error
+    //     //...
+    // }
+
+    return 0;
+}
