@@ -16,7 +16,16 @@ struct NodeStmt;
 struct NodeProg;
 
 // usings
-using std::variant, std::get, std::vector, std::unique_ptr, std::make_unique, std::move, std::string, std::function, std::holds_alternative, std::visit;
+using std::variant, 
+    std::get, 
+    std::vector, 
+    std::unique_ptr, 
+    std::make_unique, 
+    std::move, 
+    std::string, 
+    std::function, 
+    std::holds_alternative, 
+    std::visit;
 using anyNode = variant<
     unique_ptr<NodeProg>, 
     unique_ptr<NodeStmt>, 
@@ -99,7 +108,7 @@ class ParseResult {
     }
 
     inline auto extract_node() {
-        if      (holds_alternative<unique_ptr<NodeProg>>(node)) return move(get<unique_ptr<NodeProg>>(node));
+        if (holds_alternative<unique_ptr<NodeProg>>(node)) return move(get<unique_ptr<NodeProg>>(node));
         else if (holds_alternative<unique_ptr<NodeStmt>>(node)) return move(get<unique_ptr<NodeStmt>>(node));
         else if (holds_alternative<unique_ptr<NodePosAccess>>(node)) return move(get<unique_ptr<NodePosAccess>>(node));
         else if (holds_alternative<unique_ptr<NodeVarAccess>>(node)) return move(get<unique_ptr<NodeVarAccess>>(node));
@@ -130,7 +139,7 @@ class Parser {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
         result->register_([this]() { return parse_factor(); });
-        node->left = result->extract_node();
+        node->left = move(result->extract_node());
 
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
