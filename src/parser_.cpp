@@ -1,7 +1,9 @@
 #include <memory>
 #include <variant>
+#include <stdexcept>
 #include <typeindex>
 #include <functional>
+#include <type_traits>
 #include "lexer.cpp"
 #include "error.cpp"
 
@@ -202,29 +204,28 @@ class Parser {
         return result;
     }
 
-    template <typename variantT>
+    template <typename variantT, size_t Index = 0>
     inline variantT convert_node(anyNode nodeAssigned) {
-        
         constexpr size_t variant_size = std::variant_size_v<variantT>;
-        return move(visit([](auto&& value) -> variantT {
+
+        return std::move(std::visit([&](auto&& value) -> variantT {
             using T = std::decay_t<decltype(value)>;
 
+            // Helper template function to handle recursion
             auto convert_index = [&](auto&& value, size_t index) -> variantT {
-                if constexpr(index < variant_size) {
+                if constexpr (index < variant_size) {
                     using typeT = typename std::variant_alternative<index, variantT>::type;
-                    if constexpr(std::is_same_v<T, typeT>) {
-                        return variantT{move(std::get<index>(value))};
+                    if constexpr (std::is_same_v<T, typeT>) {
+                        return variantT{std::move(std::get<index>(value))};
+                    } else {
+                        return convert_index(value, index + 1);  // Recurse to the next index
                     }
-                    else {
-                        return convert_index(value, index + 1);
-                    }
-                }
-                else {
+                } else {
                     throw std::runtime_error("Invalid token type in parse_term");
                 }
-            }
+            };
 
-            return convert_index(value, 0);
+            return convert_index(value, 0);  // Start recursion from index 0
         }, nodeAssigned));
     }
 
