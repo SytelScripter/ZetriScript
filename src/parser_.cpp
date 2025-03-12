@@ -109,7 +109,7 @@ class Parser {
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> temp_result = make_unique<ParseResult>();
-        node->left = visit_node(move(temp_result), parse_factor);
+        node->left = visit_node(move(temp_result), [this]() { return parse_factor(); });
 
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -118,8 +118,6 @@ class Parser {
             node->op_tok = op_tok;
 
 
-            temp_result = move(parse_factor());
-            if (!temp_result->error.isEmpty()) return temp_result;
             node->right = visit_node(move(temp_result), [this]() { return parse_factor(); });
         }
 
