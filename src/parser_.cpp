@@ -1,5 +1,6 @@
 #include <memory>
 #include <variant>
+#include <typeindex>
 #include <functional>
 #include "lexer.cpp"
 #include "error.cpp"
@@ -108,24 +109,26 @@ class ParseResult {
     }
 
     template <typename... Types>
-    unique_ptr<std::decay_t<Types>> extract_node() {
-        return extract_node_impl<Types...>();
-    }
-    
-    private:
-    template <typename T, typename... Types>
-    std::unique_ptr<std::decay_t<T>> extract_node_impl() {
-        // Check if the node holds the type T
-        if (holds_alternative<std::unique_ptr<T>>(node)) {
-            return std::move(get<std::unique_ptr<T>>(node));
-        }
-        // Recursively check the next type in the pack if not matched
-        return extract_node_impl<Types...>();
+    auto extract_node() {
+        return extract_node_impl<Types...>(node);
     }
 
-    template <>
-    std::unique_ptr<void> extract_node_impl<>() {
-        throw std::runtime_error("Unexpected type in variant");
+    private:
+    template <typename First, typename... Rest>
+    auto extract_node_impl(const bintype& node) {
+        if (holds_alternative<std::unique_ptr<First>>(node)) {
+            return std::move(get<std::unique_ptr<First>>(node));
+        } else {
+            return extract_node_impl<Rest...>(node);  // Recursively check next types
+        }
+    }
+
+    template <typename Last>
+    auto extract_node_impl(const bintype& node) {
+        if (holds_alternative<std::unique_ptr<Last>>(node)) {
+            return std::move(get<std::unique_ptr<Last>>(node));
+        }
+        throw std::runtime_error("Node type not found in the variant");
     }
 };
 
