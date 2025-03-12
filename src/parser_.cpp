@@ -244,7 +244,7 @@ class Parser {
         else if (is_tok_type(toktype::keyword) && tokens[idx+1].type == toktype::left_paren) {
             unique_ptr<ParseResult> class_result = parse_class_builtin();
             if (class_result->error.isEmpty()) return class_result;
-            executed = move(class_result->node);
+            executed = move(convert_node<variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>>>(class_result->node));
             std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
             if (temp.has_value()) return move(temp.value());
             node->executed = move(executed);
@@ -275,7 +275,7 @@ class Parser {
         while (idx < tokens.size() && !is_tok_type(toktype::right_paren)) {
             unique_ptr<ParseResult> parse_result = move(parse_position());
             if (!parse_result->error.isEmpty()) return move(parse_result);
-            args.push_back(parse_result->node);
+            args.push_back(move(parse_result->node));
             if (idx < tokens.size() && is_tok_type(toktype::comma)) {
                 advance();
             }
