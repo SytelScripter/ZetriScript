@@ -108,27 +108,21 @@ class ParseResult {
         return;
     }
 
-    template <typename... Types>
-    auto extract_node() {
-        return extract_node_impl<Types...>(node);
-    }
-
-    private:
-    template <typename First, typename... Rest>
-    auto extract_node_impl(const bintype& node) {
-        if (holds_alternative<std::unique_ptr<First>>(node)) {
-            return std::move(get<std::unique_ptr<First>>(node));
-        } else {
-            return extract_node_impl<Rest...>(node);  // Recursively check next types
-        }
-    }
-
-    template <typename Last>
-    auto extract_node_impl(const bintype& node) {
-        if (holds_alternative<std::unique_ptr<Last>>(node)) {
-            return std::move(get<std::unique_ptr<Last>>(node));
-        }
-        throw std::runtime_error("Node type not found in the variant");
+    template<typename T, typename... Args>
+    inline T extract_node(Args&&... args) {
+        return get<T>(node, forward<Args>(args)...);
+        // return variant_cast<T>(node);
+        // return any_cast<T>(node);
+    
+        // return std::get<T>(node);
+    
+        // return std::visit([](auto&& arg) -> T {
+        //     if (auto* ptr = std::get_if<T>(&arg)) {
+        //         return *ptr;
+        //     } else {
+        //         throw std::bad_cast();
+        //     }
+        // }, node);
     }
 };
 
