@@ -119,20 +119,6 @@ class ParseResult {
         }
     }
 
-    template <typename nodeT>
-    int get_i() {
-        if (nodeT == typeid(NodeNumber)) return 8;
-        if (nodeT == typeid(NodeBinOp)) return 7;
-        if (nodeT == typeid(NodeExec)) return 6;
-        if (nodeT == typeid(NodeClassBuiltIn)) return 5;
-        if (nodeT == typeid(NodeVarAssign)) return 4;
-        if (nodeT == typeid(NodeVarAccess)) return 3;
-        if (nodeT == typeid(NodePosAccess)) return 2;
-        if (nodeT == typeid(NodeStmt)) return 1;
-        if (nodeT == typeid(NodeProg)) return 0;
-        else std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
-    }
-
     private:
     auto get_node_by_index(int type) {
         if (type == 0) return typeid(NodeProg);
@@ -208,4 +194,19 @@ class Parser {
         result->node = move(wrapped_node);
         return result;
     }
+
+    template <typename nodeT>
+    int get_i() {
+        if (nodeT == typeid(NodeNumber)) return 8;
+        if (nodeT == typeid(NodeBinOp)) return 7;
+        if (nodeT == typeid(NodeExec)) return 6;
+        if (nodeT == typeid(NodeClassBuiltIn)) return 5;
+        if (nodeT == typeid(NodeVarAssign)) return 4;
+        if (nodeT == typeid(NodeVarAccess)) return 3;
+        if (nodeT == typeid(NodePosAccess)) return 2;
+        if (nodeT == typeid(NodeStmt)) return 1;
+        if (nodeT == typeid(NodeProg)) return 0;
+        else std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
+    }
+
 };
