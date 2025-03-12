@@ -202,7 +202,7 @@ class Parser {
 
     
     template <typename variantT, size_t Index = 0>
-    variantT convert_node_impl(const std::variant<int, double, std::string>& value) {
+    variantT convert_node_impl(const anyNode& value) {
         constexpr size_t variant_size = std::variant_size_v<variantT>;
 
         if constexpr (Index < variant_size) {
@@ -218,7 +218,7 @@ class Parser {
     }
 
     template <typename variantT>
-    variantT convert_node(const std::variant<int, double, std::string>& nodeAssigned) {
+    variantT convert_node(const anyNode& nodeAssigned) {
         return convert_node_impl<variantT>(nodeAssigned);  // Start recursion from index 0
     }
 
