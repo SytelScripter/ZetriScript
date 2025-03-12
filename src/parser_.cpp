@@ -132,10 +132,10 @@ class ParseResult {
                 if (type == 6) return move(get<unique_ptr<NodeExec>>(node));
                 if (type == 7) return move(get<unique_ptr<NodeBinOp>>(node));
                 if (type == 8) return move(get<unique_ptr<NodeNumber>>(node));
-                std::runtime_error("Invalid node type");
+                throw std::runtime_error("Invalid node type");
             }
         }
-        std::runtime_error("Invalid node type");
+        throw std::runtime_error("Invalid node type");
     }
 };
 
