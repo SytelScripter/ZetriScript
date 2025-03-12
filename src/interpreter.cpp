@@ -56,32 +56,30 @@ class Interpreter {
     }
 
     string visitNodeBinOp(unique_ptr<NodeBinOp> node) {
-        string left = visit([](auto&& value) -> string {
-            using T = std::decay_t<decltype(value)>;
-            if (std::is_same_v<T, unique_ptr<NodeVarAccess>>) {
-                return visitNodeVarAccess(value);
-            }
-            else if (std::is_same_v<T, unique_ptr<NodeNumber>>) {
-                return visitNodeNumber(value);
-            }
-            else if (std::is_same_v<T, unique_ptr<NodeBinOp>>) {
-                return visitNodeBinOp(value);
-            }
+        string left = visit([](const unique_ptr<Node>& value) -> string {
+            if (auto varAccess = dynamic_cast<NodeVarAccess*>(value.get())) {
+                return visitNodeVarAccess(varAccess);
+            } 
+            else if (auto number = dynamic_cast<NodeNumber*>(value.get())) {
+                return visitNodeNumber(number);
+            } 
+            else if (auto binOp = dynamic_cast<NodeBinOp*>(value.get())) {
+                return visitNodeBinOp(unique_ptr<NodeBinOp>(binOp));
+            } 
             else {
                 throw std::runtime_error("Invalid binary operator");
             }
         }, node->left);
-        string right = visit([](auto&& value) -> string {
-            using T = std::decay_t<decltype(value)>;
-            if (std::is_same_v<T, unique_ptr<NodeVarAccess>>) {
-                return visitNodeVarAccess(value);
-            }
-            else if (std::is_same_v<T, unique_ptr<NodeNumber>>) {
-                return visitNodeNumber(value);
-            }
-            else if (std::is_same_v<T, unique_ptr<NodeBinOp>>) {
-                return visitNodeBinOp(value);
-            }
+        string right = visit([](const unique_ptr<Node>& value) -> string {
+            if (auto varAccess = dynamic_cast<NodeVarAccess*>(value.get())) {
+                return visitNodeVarAccess(varAccess);
+            } 
+            else if (auto number = dynamic_cast<NodeNumber*>(value.get())) {
+                return visitNodeNumber(number);
+            } 
+            else if (auto binOp = dynamic_cast<NodeBinOp*>(value.get())) {
+                return visitNodeBinOp(unique_ptr<NodeBinOp>(binOp));
+            } 
             else {
                 throw std::runtime_error("Invalid binary operator");
             }
