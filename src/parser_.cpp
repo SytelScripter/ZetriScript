@@ -118,7 +118,6 @@ class ParseResult {
         return;
     }
 
-    // extract node extracts from the node variant existing, but it doesn't check every type, it checks only types that are given in the function.
     auto extract_node() {
         if (auto ptr = std::get_if<unique_ptr<NodeProg>>(&node)) return std::move(*ptr);
         if (auto ptr = std::get_if<unique_ptr<NodeStmt>>(&node)) return std::move(*ptr);
@@ -156,7 +155,9 @@ class Parser {
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
         // std::vector<int> types = { get_i<unique_ptr<NodeNumber>>(), get_i<unique_ptr<NodeBinOp>>(), get_i<unique_ptr<NodeVarAccess>>() }; // {8, 7, 3}
 
-        result->register_([this]() { return parse_factor(); });
+        unique_ptr<NodeStmt> test = make_unique<NodeStmt>();
+        result->node = move(test);
+        // result->register_([this]() { return parse_factor(); });
         if (!result->error.isEmpty()) return result;
         // node->left = move(result->extract_node(types));
         node->left = move(result->extract_node());
