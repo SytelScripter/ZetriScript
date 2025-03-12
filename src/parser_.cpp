@@ -208,9 +208,7 @@ class Parser {
         return move(visit([](auto&& value) -> variantT {
             using T = std::decay_t<decltype(value)>;
             for (size_t i = 0; i < variant_size; i++) {
-                type_at_index<i, variantT>
-                using typeT = typename std::variant_alternative<i, variantT>::type;
-                if constexpr(std::is_same_v<T, typeT>) {
+                if constexpr(std::is_same_v<T, type_at_index<i, variantT>>) {
                     return variantT{move(std::get<i>(value))};
                 }
             }
