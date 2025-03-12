@@ -166,18 +166,16 @@ class Parser {
 
             result_term->register_([this]() { return parse_factor(); });
             if (!result_term->error.isEmpty()) return result_term;
-            node->right = move(visit([](const auto&& value) -> bintype {
+            node->right = move(visit([](auto&& value) -> bintype {
                 using T = std::decay_t<decltype(value)>;
-                bintype result;
                 if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
-                    result = move(value);
+                    return move(value);
                 else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
-                    result = move(value);
+                    return move(value);
                 else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
-                    result = move(value);
+                    return move(value);
                 else 
                     throw std::runtime_error("Invalid token type in parse_term");
-                return result;
             }, result_term->node));
         }
 
