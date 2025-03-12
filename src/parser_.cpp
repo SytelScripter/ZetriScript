@@ -133,7 +133,7 @@ class Parser {
         unique_ptr<ParseResult> result_term = move(parse_factor());
         
         if (!result_term->error.isEmpty()) return result_term;
-        node->left = move(convert_node<bintype, 3>(result_term->node));
+        node->left = move(convert_node<bintype>(result_term->node));
         // node->left = move(visit([](auto&& value) -> bintype {
         //     using T = std::decay_t<decltype(value)>;
         //     bintype result;
@@ -155,7 +155,7 @@ class Parser {
 
             result_term = move(parse_factor());
             if (!result_term->error.isEmpty()) return result_term;
-            node->right = move(convert_node<bintype, 3>(result_term->node));
+            node->right = move(convert_node<bintype>(result_term->node));
             // node->right = move(visit([](auto&& value) -> bintype {
             //     using T = std::decay_t<decltype(value)>;
             //     if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
@@ -198,12 +198,13 @@ class Parser {
         return result;
     }
 
-    template <typename variantT, int variantLen>
+    template <typename variantT>
     inline variantT convert_node(anyNode nodeAssigned) {
+        constexpr size_t variant_size = std::variant_size_v<variantT>;
         return move(visit([](auto&& value) -> variantT {
             using T = std::decay_t<decltype(value)>;
-            for (int i = 0; i < variantLen; i++) {
-                using TypeT = typename std::variant_alternative<i, VariantT>::type;
+            for (int i = 0; i < variant_size; i++) {
+                using TypeT = typename std::variant_alternative<i, variantT>::type;
                 if constexpr(std::is_same_v<T, TypeT>) {
                     return variantT{move(std::get<i>(value))};
                 }
