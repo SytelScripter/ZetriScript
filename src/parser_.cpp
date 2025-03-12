@@ -149,7 +149,7 @@ class Parser {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
         result->register_([this]() { return parse_factor(); });
-        node->left = move(result->extract_node<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>>());
+        node->left = move(result->extract_node<NodeNumber, NodeBinOp, NodeVarAccess>());
 
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -158,7 +158,7 @@ class Parser {
             node->op_tok = op_tok;
 
             result->register_([this]() { return parse_factor(); });
-            node->right = move(result->extract_node<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>>());
+            node->right = move(result->extract_node<NodeNumber, NodeBinOp, NodeVarAccess>());
         }
 
         return parse_result(move(node));
