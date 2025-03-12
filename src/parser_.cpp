@@ -134,18 +134,18 @@ class Parser {
         unique_ptr<NodePosAccess> node = make_unique<NodePosAccess>();
         unique_ptr<ParseResult> xResult = move(parse_expr());
         if (!xResult->error.isEmpty()) return move(xResult);
-        node->x = move(xResult->node);
+        node->x = move(convert_node<bintype>(xResult->node));
         std::optional<unique_ptr<ParseResult>> temp1 = check_error(toktype::comma);
         if (temp1.has_value()) return move(temp1.value());
         advance(); // ','
         unique_ptr<ParseResult> yResult = move(parse_expr());
         if (!yResult->error.isEmpty()) return move(yResult);
-        node->y = move(yResult->node);
+        node->y = move(convert_node<bintype>(yResult->node));
         std::optional<unique_ptr<ParseResult>> temp2 = check_error(toktype::comma);
         if (temp2.has_value()) return move(temp2.value());
         unique_ptr<ParseResult> zResult = move(parse_expr());
         if (!zResult->error.isEmpty()) return move(zResult);
-        node->z = move(zResult->node);
+        node->z = move(convert_node<bintype>(zResult->node));
         std::optional<unique_ptr<ParseResult>> temp3 = check_error(toktype::right_square);
         if (temp3.has_value()) return move(temp3.value());
         advance(); // ']'
