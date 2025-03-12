@@ -168,7 +168,8 @@ class Parser {
 
             result->register_([this]() { return parse_factor(); });
             if (!result->error.isEmpty()) return result;
-            node->right = move(result->extract_node(types));
+            // node->right = move(result->extract_node(types));
+            node->right = move(result->extract_node());
         }
 
         return parse_result<unique_ptr<NodeBinOp>>(move(node));
