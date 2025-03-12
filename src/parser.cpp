@@ -390,6 +390,11 @@ class Parser {
             if (!stmt_result->error.isEmpty()) return move(stmt_result);
             node->prog.push_back(move(get<unique_ptr<NodeStmt>>(stmt_result->node)));
         }
+        if (!is_tok(toktype::keyword, "ZetriScript")) {
+            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+            result_program->error = ErrorSyntax(parse_position, "EXPECTED 'ZetriScript' BUT GOT: '" + current_tok.to_string() + "'");
+            return move(result_program);
+        }
 
         result_program->node = move(node);
         return move(result_program);
