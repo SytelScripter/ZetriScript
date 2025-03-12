@@ -88,7 +88,7 @@ struct NodeStmt {
 };
 
 struct NodeProg {
-    NodePosAccess entry_pos;
+    unique_ptr<NodePosAccess> entry_pos;
     vector<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>> prog;
 };
 
@@ -344,7 +344,7 @@ class Parser {
             if (!var_assign_result->error.isEmpty()) return move(var_assign_result);
             node->stmts.push_back(move(var_assign_result->node));
 
-            if (is_tok_type(toktype::semi_colon)) {
+            if (is_tok_type(toktype::semicolon)) {
                 advance();
             }
             else {
@@ -353,17 +353,17 @@ class Parser {
                 return move(result_stmt);
             }
         }
-        std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::semi_colon));
+        std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::semicolon));
     }
 
     unique_ptr<ParseResult> parse_program() {
         unique_ptr<ParseResult> result_program = make_unique<ParseResult>();
 
         unique_ptr<NodeProg> node = make_unique<NodeProg>();
-        if (!is_tok_type(toktype::keyword, "ZetriScript")) {
+        if (!is_tok(toktype::keyword, "ZetriScript")) {
             ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
-            node->error = ErrorSyntax(parse_position, "EXPECTED 'ZetriScript' BUT GOT: '" + current_tok.to_string() + "'");
-            return move(node);
+            result_program->error = ErrorSyntax(parse_position, "EXPECTED 'ZetriScript' BUT GOT: '" + current_tok.to_string() + "'");
+            return move(result_program);
         }
         advance(); // 'ZetriScript'
         unique_ptr<ParseResult> entry_pos_result = move(parse_position());
@@ -372,15 +372,15 @@ class Parser {
 
         if (!is_tok_type(toktype::exc_mark)) {
             ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
-            node->error = ErrorSyntax(parse_position, "EXPECTED END OF FILE BUT GOT: '" + current_tok.to_string() + "'");
-            return move(node);
+            result_program->error = ErrorSyntax(parse_position, "EXPECTED END OF FILE BUT GOT: '" + current_tok.to_string() + "'");
+            return move(result_program);
         }
         advance(); // '!'
 
         while (!is_tok_type(toktype::eof_)) {
             unique_ptr<ParseResult> stmt_result = move(parse_stmt());
             if (!stmt_result->error.isEmpty()) return move(stmt_result);
-            node->stmts.push_back(move(stmt_result->node));
+            node->prog.push_back(move(stmt_result->node));
         }
 
         result_program->node = move(node);
