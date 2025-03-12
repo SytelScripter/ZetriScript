@@ -200,18 +200,24 @@ class Parser {
 
     template <typename variantT>
     inline variantT convert_node(anyNode nodeAssigned) {
+        template <std::size_t Index, typename Variant>
+        using type_at_index = typename std::variant_alternative<Index, Variant>::type;
+        
+
         constexpr size_t variant_size = std::variant_size_v<variantT>;
         return move(visit([](auto&& value) -> variantT {
             using T = std::decay_t<decltype(value)>;
             for (size_t i = 0; i < variant_size; i++) {
-                using TypeT = typename std::variant_alternative<i, variantT>::type;
-                if constexpr(std::is_same_v<T, TypeT>) {
+                type_at_index<i, variantT>
+                using typeT = typename std::variant_alternative<i, variantT>::type;
+                if constexpr(std::is_same_v<T, typeT>) {
                     return variantT{move(std::get<i>(value))};
                 }
             }
             throw std::runtime_error("Invalid token type in parse_term");
         }, nodeAssigned));
     }
+
 
     template <typename nodeT>
     int get_i() {
