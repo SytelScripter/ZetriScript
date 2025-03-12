@@ -158,7 +158,7 @@ class Parser {
         unique_ptr<NodeStmt> test = make_unique<NodeStmt>();
         result_term->node = move(test);
         // result->register_([this]() { return parse_factor(); });
-        if (!result_term->error.isEmpty()) return result;
+        if (!result_term->error.isEmpty()) return result_term;
         // node->left = move(result->extract_node(types));
         node->left = move(result_term->extract_node());
 
@@ -168,7 +168,7 @@ class Parser {
             node->op_tok = op_tok;
 
             result_term->register_([this]() { return parse_factor(); });
-            if (!result_term->error.isEmpty()) return result;
+            if (!result_term->error.isEmpty()) return result_term;
             // node->right = move(result->extract_node(types));
             node->right = move(result_term->extract_node());
         }
