@@ -43,6 +43,10 @@ using bintype = variant<
     unique_ptr<NodeBinOp>,
     unique_ptr<NodeVarAccess>
 >;
+
+template <std::size_t Index, typename Variant>
+using type_at_index = typename std::variant_alternative<Index, Variant>::type;
+
 const int nodesLen = 9;
 
 // definitions of all nodes
@@ -200,21 +204,30 @@ class Parser {
 
     template <typename variantT>
     inline variantT convert_node(anyNode nodeAssigned) {
-        template <std::size_t Index, typename Variant>
-        using type_at_index = typename std::variant_alternative<Index, Variant>::type;
         
-
         constexpr size_t variant_size = std::variant_size_v<variantT>;
         return move(visit([](auto&& value) -> variantT {
             using T = std::decay_t<decltype(value)>;
-            for (size_t i = 0; i < variant_size; i++) {
-                if constexpr(std::is_same_v<T, type_at_index<i, variantT>>) {
-                    return variantT{move(std::get<i>(value))};
+
+            auto convert_index = [&](auto&& value, size_t index) -> variantT {
+                if constexpr(index < variant_size) {
+                    using typeT = typename std::variant_alternative<index, variantT>::type;
+                    if constexpr(std::is_same_v<T, typeT>) {
+                        return variantT{move(std::get<index>(value))};
+                    }
+                    else {
+                        return convert_index(value, index + 1);
+                    }
+                }
+                else {
+                    throw std::runtime_error("Invalid token type in parse_term");
                 }
             }
-            throw std::runtime_error("Invalid token type in parse_term");
+
+            return convert_index(value, 0);
         }, nodeAssigned));
     }
+
 
 
     template <typename nodeT>
