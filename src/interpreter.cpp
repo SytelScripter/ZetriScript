@@ -56,31 +56,31 @@ class Interpreter {
     }
 
     string visitNodeBinOp(unique_ptr<NodeBinOp> node) {
-        string left = visit([](auto&& node) -> string {
+        string left = visit([](auto&& value) -> string {
             using T = std::decay_t<decltype(value)>;
             if (std::is_same_v<T, unique_ptr<NodeVarAccess>>) {
-                return visitNodeVarAccess(node);
+                return visitNodeVarAccess(value);
             }
             else if (std::is_same_v<T, unique_ptr<NodeNumber>>) {
-                return visitNodeNumber(node);
+                return visitNodeNumber(value);
             }
             else if (std::is_same_v<T, unique_ptr<NodeBinOp>>) {
-                return visitNodeBinOp(node);
+                return visitNodeBinOp(value);
             }
             else {
                 throw std::runtime_error("Invalid binary operator");
             }
         }, node->left);
-        string right = visit([](auto&& node) -> string {
+        string right = visit([](auto&& value) -> string {
             using T = std::decay_t<decltype(value)>;
             if (std::is_same_v<T, unique_ptr<NodeVarAccess>>) {
-                return visitNodeVarAccess(node);
+                return visitNodeVarAccess(value);
             }
             else if (std::is_same_v<T, unique_ptr<NodeNumber>>) {
-                return visitNodeNumber(node);
+                return visitNodeNumber(value);
             }
             else if (std::is_same_v<T, unique_ptr<NodeBinOp>>) {
-                return visitNodeBinOp(node);
+                return visitNodeBinOp(value);
             }
             else {
                 throw std::runtime_error("Invalid binary operator");
