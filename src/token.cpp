@@ -92,3 +92,31 @@ class Token_ {
         return result;
     }
 };
+
+inline std::string toktype_to_string(toktype type) {
+    switch (type) {
+        case toktype::none: return "none";
+        case toktype::eof_: return "EOF";
+        case toktype::keyword: return "keyword";
+        case toktype::left_square: return "[";
+        case toktype::right_square: return "]";
+        case toktype::left_curly: return "{";
+        case toktype::right_curly: return "}";
+        case toktype::semicolon: return ";";
+        case toktype::plus: return "+";
+        case toktype::minus: return "-";
+        case toktype::mul: return "*";
+        case toktype::div: return "/";
+        case toktype::colon: return ":";
+        case toktype::equals: return "=";
+        case toktype::left_paren: return "(";
+        case toktype::right_paren: return ")";
+        case toktype::int_lit: return "int_lit";
+        case toktype::float_lit: return "float_lit";
+        case toktype::name: return "name";
+        case toktype::exc_mark: return "!";
+        case toktype::comma: return ",";
+        case toktype::dot: return ".";
+        default: return "Unknown";
+    }
+}
