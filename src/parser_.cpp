@@ -205,20 +205,20 @@ class Parser {
 
         if (is_tok_type(toktype::name)) {
             Token_ name = tokens[idx++];
-            std::optional<unique_ptr<ParseResult>> temp = check_error(toktype::exc_mark);
-            if (temp.hasValue()) return temp.value();
+            std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
+            if (temp.has_value()) return temp.value();
             executed = make_unique<NodeVarAccess>();
             executed->var_name_tok = name;
-            result_exec = move(executed);
+            result_exec->node = move(executed);
             return move(result_exec);
         }
         else if (is_tok_type(toktype::keyword) && tokens[idx+1].type == toktype::left_paren) {
             unique_ptr<NodeClassBuiltIn> node = parse_class_builtin();
-            std::optional<unique_ptr<ParseResult>> temp = check_error(toktype::exc_mark);
-            if (temp.hasValue()) return temp.value();
+            std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
+            if (temp.has_value()) return temp.value();
             executed = make_unique<NodeClassBuiltIn>();
             executed->class_name_tok = node->class_name_tok;
-            result_exec = move(executed);
+            result_exec->node = move(executed);
             return move(result_exec);
         }
 
@@ -247,7 +247,7 @@ class Parser {
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
         if (!is_tok_type(type)) {
             ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
-            result->error = ErrorSyntax(parse_position, std::string(std::string("EXPECTED'") + toktype_to_string(exc_mark) + "' BUT GOT: '" + current_tok.to_string()); + current_tok.to_string() + std::string("'"));
+            result->error = ErrorSyntax(parse_position, std::string("EXPECTED'") + toktype_to_string(type) + "' BUT GOT: '" + current_tok.to_string() + std::string("'"));
             return move(result);
         }
         advance();
