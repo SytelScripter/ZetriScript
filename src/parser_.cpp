@@ -235,11 +235,11 @@ class Parser {
         if (temp.has_value()) return move(temp.value());
         advance(); // '('
 
-        vector<variant<unique_ptr<ParsePosition>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>> args;
+        vector<variant<unique_ptr<NodePosAccess>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>> args;
         while (idx < tokens.size() && !is_tok_type(toktype::right_paren)) {
             unique_ptr<ParseResult> parse_result = move(parse_position());
             if (!parse_result->error.isEmpty()) return move(parse_result);
-            args.push_back(move(convert_node<variant<unique_ptr<ParsePosition>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>>(parse_result->node)));
+            args.push_back(move(convert_node<variant<unique_ptr<NodePosAccess>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>>(parse_result->node)));
             if (idx < tokens.size() && is_tok_type(toktype::comma)) {
                 advance();
             }
@@ -258,12 +258,12 @@ class Parser {
 
         if (!is_tok(toktype::keyword, "goto")) {
             unique_ptr<ParseResult> expr_result = move(parse_expr());
-            return move(expre_result);
+            return move(expr_result);
         }
         advance(); // 'goto'
 
         if (is_tok_type(toktype::left_square)) {
-            unique_ptr<ParseResult> pos_result = move(parse_pos());
+            unique_ptr<ParseResult> pos_result = move(parse_position());
             if (!pos_result->error.isEmpty()) return move(pos_result);
 
             std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
@@ -318,7 +318,7 @@ class Parser {
             return move(result_exec);
         }
         Token_ name = tokens[idx++];
-        std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::equal));
+        std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::equals));
         if (temp.has_value()) return move(temp.value());
         
         variant<unique_ptr<NodeExec>, unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>> value;
