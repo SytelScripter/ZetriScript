@@ -121,15 +121,15 @@ class ParseResult {
 
     private:
     auto get_node_by_index(int type) {
-        if (type == 0) return typeid(NodeProg);
-        if (type == 1) return typeid(NodeStmt);
-        if (type == 2) return typeid(NodePosAccess);
-        if (type == 3) return typeid(NodeVarAccess);
-        if (type == 4) return typeid(NodeVarAssign);
-        if (type == 5) return typeid(NodeClassBuiltIn);
-        if (type == 6) return typeid(NodeExec);
-        if (type == 7) return typeid(NodeBinOp);
-        if (type == 8) return typeid(NodeNumber);
+        if (type == 0) return typeid(NodeProg).name();
+        if (type == 1) return typeid(NodeStmt).name();
+        if (type == 2) return typeid(NodePosAccess).name();
+        if (type == 3) return typeid(NodeVarAccess).name();
+        if (type == 4) return typeid(NodeVarAssign).name();
+        if (type == 5) return typeid(NodeClassBuiltIn).name();
+        if (type == 6) return typeid(NodeExec).name();
+        if (type == 7) return typeid(NodeBinOp).name();
+        if (type == 8) return typeid(NodeNumber).name();
         else std::runtime_error("Parser::get_node_by_index: unsupported type (not included in anyNode)");
     }
 };
