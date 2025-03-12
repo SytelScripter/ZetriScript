@@ -107,17 +107,26 @@ class ParseResult {
         return;
     }
 
-    inline auto extract_node() {
-        if (holds_alternative<unique_ptr<NodeProg>>(node)) return move(get<unique_ptr<NodeProg>>(node));
-        else if (holds_alternative<unique_ptr<NodeStmt>>(node)) return move(get<unique_ptr<NodeStmt>>(node));
-        else if (holds_alternative<unique_ptr<NodePosAccess>>(node)) return move(get<unique_ptr<NodePosAccess>>(node));
-        else if (holds_alternative<unique_ptr<NodeVarAccess>>(node)) return move(get<unique_ptr<NodeVarAccess>>(node));
-        else if (holds_alternative<unique_ptr<NodeVarAssign>>(node)) return move(get<unique_ptr<NodeVarAssign>>(node));
-        else if (holds_alternative<unique_ptr<NodeClassBuiltIn>>(node)) return move(get<unique_ptr<NodeClassBuiltIn>>(node));
-        else if (holds_alternative<unique_ptr<NodeExec>>(node)) return move(get<unique_ptr<NodeExec>>(node));
-        else if (holds_alternative<unique_ptr<NodeBinOp>>(node)) return move(get<unique_ptr<NodeBinOp>>(node));
-        else if (holds_alternative<unique_ptr<NodeNumber>>(node)) return move(get<unique_ptr<NodeNumber>>(node));
-        else throw std::runtime_error("Unexpected type in variant");
+    template <typename... Types>
+    unique_ptr<std::remove_pointer_t<Types>> extract_node() {
+        unique_ptr<std::remove_pointer_t<Types>> result = nullptr;
+
+        // Fold expression or recursive check for each type in Types pack
+        (try_extract<Types>(result), ...);
+
+        if (result == nullptr) {
+            throw std::runtime_error("Node type mismatch");
+        }
+        return result;
+    }
+    
+    private:
+    template <typename T>
+    void try_extract(unique_ptr<T>& result) {
+        if (holds_alternative<unique_ptr<T>>(node)) {
+            result = move(get<unique_ptr<T>>(node));  // Move the node of type T
+            std::cout << "Extracted node of type: " << typeid(T).name() << "\n";
+        }
     }
 };
 
@@ -140,7 +149,7 @@ class Parser {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
         result->register_([this]() { return parse_factor(); });
-        node->left = move(result->extract_node());
+        node->left = move(result->extract_node<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>>());
 
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -149,7 +158,7 @@ class Parser {
             node->op_tok = op_tok;
 
             result->register_([this]() { return parse_factor(); });
-            node->right = move(result->extract_node());
+            node->right = move(result->extract_node<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>>());
         }
 
         return parse_result(move(node));
