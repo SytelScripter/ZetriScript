@@ -121,7 +121,6 @@ class ParseResult {
     // extract node extracts from the node variant existing, but it doesn't check every type, it checks only types that are given in the function.
     auto extract_node(std::vector<int> types) {
         int existing_type = node.index();
-        std::cout << existing_type;
         for (int type : types) {
             if (type == existing_type) {
                 switch (type) {
