@@ -86,6 +86,7 @@ class ParseResult {
     anyNode node;
     ErrorSyntax error;
 
+    ParseResult() {}
     ParseResult(ErrorSyntax error_) : error(error_) {}
     ParseResult(anyNode node_) : node(move(node_)), error(ErrorSyntax()) {}
 };
