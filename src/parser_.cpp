@@ -200,29 +200,26 @@ class Parser {
         return result;
     }
 
+    
     template <typename variantT, size_t Index = 0>
-    inline variantT convert_node(anyNode nodeAssigned) {
+    variantT convert_node_impl(const std::variant<int, double, std::string>& value) {
         constexpr size_t variant_size = std::variant_size_v<variantT>;
 
-        return std::move(std::visit([&](auto&& value) -> variantT {
-            using T = std::decay_t<decltype(value)>;
+        if constexpr (Index < variant_size) {
+            using typeT = typename std::variant_alternative<Index, variantT>::type;
+            if constexpr (std::is_same_v<typeT, std::decay_t<decltype(value)>>) {
+                return std::get<Index>(value);  // Return the value wrapped in variant
+            } else {
+                return convert_node_impl<variantT, Index + 1>(value);  // Recurse to next index
+            }
+        } else {
+            throw std::runtime_error("Invalid token type in parse_term");
+        }
+    }
 
-            // Helper template function to handle recursion
-            auto convert_index = [&](auto&& value, size_t index) -> variantT {
-                if constexpr (index < variant_size) {
-                    using typeT = typename std::variant_alternative<index, variantT>::type;
-                    if constexpr (std::is_same_v<T, typeT>) {
-                        return variantT{std::move(std::get<index>(value))};
-                    } else {
-                        return convert_index(value, index + 1);  // Recurse to the next index
-                    }
-                } else {
-                    throw std::runtime_error("Invalid token type in parse_term");
-                }
-            };
-
-            return convert_index(value, 0);  // Start recursion from index 0
-        }, nodeAssigned));
+    template <typename variantT>
+    variantT convert_node(const std::variant<int, double, std::string>& nodeAssigned) {
+        return convert_node_impl<variantT>(nodeAssigned);  // Start recursion from index 0
     }
 
 
