@@ -123,18 +123,19 @@ class ParseResult {
         int existing_type = node.index();
         for (int type : types) {
             if (type == existing_type) {
-                if (type == 0) return get<unique_ptr<NodeProg>>(node);
-                if (type == 1) return get<unique_ptr<NodeStmt>>(node);
-                if (type == 2) return get<unique_ptr<NodePosAccess>>(node);
-                if (type == 3) return get<unique_ptr<NodeVarAccess>>(node);
-                if (type == 4) return get<unique_ptr<NodeVarAssign>>(node);
-                if (type == 5) return get<unique_ptr<NodeClassBuiltIn>>(node);
-                if (type == 6) return get<unique_ptr<NodeExec>>(node);
-                if (type == 7) return get<unique_ptr<NodeBinOp>>(node);
-                if (type == 8) return get<unique_ptr<NodeNumber>>(node);
+                if (type == 0) return move(get<unique_ptr<NodeProg>>(node));
+                if (type == 1) return move(get<unique_ptr<NodeStmt>>(node));
+                if (type == 2) return move(get<unique_ptr<NodePosAccess>>(node));
+                if (type == 3) return move(get<unique_ptr<NodeVarAccess>>(node));
+                if (type == 4) return move(get<unique_ptr<NodeVarAssign>>(node));
+                if (type == 5) return move(get<unique_ptr<NodeClassBuiltIn>>(node));
+                if (type == 6) return move(get<unique_ptr<NodeExec>>(node));
+                if (type == 7) return move(get<unique_ptr<NodeBinOp>>(node));
+                if (type == 8) return move(get<unique_ptr<NodeNumber>>(node));
                 std::runtime_error("Invalid node type");
             }
         }
+        std::runtime_error("Invalid node type");
     }
 };
 
