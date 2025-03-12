@@ -117,7 +117,7 @@ class Interpreter {
         // first all the positions
         ParsePosition entry_pos = visitNodePosAccess(program->entry_pos);
         std::vector<ParsePosition> positions;
-        for (auto&& stmt : porgram->stmts) {
+        for (auto&& stmt : program->stmts) {
             
             stmt->eval_pos = visitNodePosAccess(move(stmt));
 
