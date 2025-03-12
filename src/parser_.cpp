@@ -209,7 +209,8 @@ class Parser {
             if (temp.has_value()) return temp.value();
             executed = make_unique<NodeVarAccess>();
             executed->var_name_tok = name;
-            result_exec->node = move(executed);
+            node->executed = move(executed);
+            result_exec->node = move(node);
             return move(result_exec);
         }
         else if (is_tok_type(toktype::keyword) && tokens[idx+1].type == toktype::left_paren) {
@@ -218,7 +219,8 @@ class Parser {
             if (temp.has_value()) return temp.value();
             executed = make_unique<NodeClassBuiltIn>();
             executed->class_name_tok = node->class_name_tok;
-            result_exec->node = move(executed);
+            node->executed = move(executed);
+            result_exec->node = move(node);
             return move(result_exec);
         }
 
