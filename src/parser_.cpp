@@ -169,11 +169,11 @@ class Parser {
             node->right = move(visit([](auto&& value) -> bintype {
                 using T = std::decay_t<decltype(value)>;
                 if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
-                    return move(value);
+                    return bintype{move(value)};
                 else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
-                    return move(value);
+                    return bintype{move(value)};
                 else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
-                    return move(value);
+                    return bintype{move(value)};
                 else 
                     throw std::runtime_error("Invalid token type in parse_term");
             }, result_term->node));
