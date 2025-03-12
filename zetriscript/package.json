@@ -20,6 +20,13 @@
       "language": "zetriscript",
       "scopeName": "source.zetriscript",
       "path": "./syntaxes/zetriscript.tmLanguage.json"
-    }]
+    }],
+    "themes": [
+      {
+        "label": "ZetriScript Color Theme",
+        "uiTheme": "vs-dark",
+        "path": "./themes/zetriscript-color-theme.json"
+      }
+    ]
   }
 }
