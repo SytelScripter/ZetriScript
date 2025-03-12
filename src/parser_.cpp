@@ -140,10 +140,8 @@ class Parser {
 
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
-        unique_ptr<ParseResult> result_term = make_unique<ParseResult>();
-        // std::vector<int> types = { get_i<unique_ptr<NodeNumber>>(), get_i<unique_ptr<NodeBinOp>>(), get_i<unique_ptr<NodeVarAccess>>() }; // {8, 7, 3}
-
-        result_term->register_([this]() { return parse_factor(); });
+        unique_ptr<ParseResult> result_term = parse_factor();
+        
         if (!result_term->error.isEmpty()) return result_term;
         node->left = move(visit([](const auto&& value) -> bintype {
             using T = std::decay_t<decltype(value)>;
