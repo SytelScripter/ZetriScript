@@ -45,10 +45,6 @@ using bintype = variant<
     unique_ptr<NodeBinOp>,
     unique_ptr<NodeVarAccess>
 >;
-
-template <std::size_t Index, typename Variant>
-using type_at_index = typename std::variant_alternative<Index, Variant>::type;
-
 const int nodesLen = 9;
 
 // definitions of all nodes
