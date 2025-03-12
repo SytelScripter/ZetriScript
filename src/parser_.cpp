@@ -150,11 +150,15 @@ class Parser {
         }
 
     unique_ptr<ParseResult> parse_factor() {
+        unique_ptr<ParseResult> result = make_unique<ParseResult>();
+
         Token_ value = tokens[idx++];
         unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
         node->num_tok = value;
 
-        return parse_result<unique_ptr<NodeNumber>>(move(node));
+        result->node = move(node);
+
+        return result;
     }
 
     unique_ptr<ParseResult> parse_term() {
