@@ -151,10 +151,10 @@ class Parser {
         return result;
     }
 
-    inline auto visit_node(unique_ptr<ParseResult> temp_result, std::function node_visited) {
+    inline auto visit_node(unique_ptr<ParseResult> temp_result, std::function<unique_ptr<ParseResult>> node_visited) {
         temp_result = move(node_visited());
         if (!temp_result->error.isEmpty()) return temp_result;
-        return std::visit(
+        return move(std::visit(
             [](auto&& arg) -> bintype {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T, std::unique_ptr<NodeNumber>> ||
@@ -166,6 +166,6 @@ class Parser {
                 }
             },
             temp_result->node
-        );
+        ));
     }
 };
