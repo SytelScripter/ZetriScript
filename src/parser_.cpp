@@ -123,23 +123,18 @@ class ParseResult {
         int existing_type = node.index();
         for (int type : types) {
             if (type == existing_type) {
-                return get<get_node_by_index(type)>(node);
+                if (type == 0) return get<unique_ptr<NodeProg>>(node);
+                if (type == 1) return get<unique_ptr<NodeStmt>>(node);
+                if (type == 2) return get<unique_ptr<NodePosAccess>>(node);
+                if (type == 3) return get<unique_ptr<NodeVarAccess>>(node);
+                if (type == 4) return get<unique_ptr<NodeVarAssign>>(node);
+                if (type == 5) return get<unique_ptr<NodeClassBuiltIn>>(node);
+                if (type == 6) return get<unique_ptr<NodeExec>>(node);
+                if (type == 7) return get<unique_ptr<NodeBinOp>>(node);
+                if (type == 8) return get<unique_ptr<NodeNumber>>(node);
+                std::runtime_error("Invalid node type");
             }
         }
-    }
-
-    private:
-    auto get_node_by_index(int type) {
-        if (type == 0) return make_unique<NodeProg>();
-        if (type == 1) return make_unique<NodeStmt>();
-        if (type == 2) return make_unique<NodePosAccess>();
-        if (type == 3) return make_unique<NodeVarAccess>();
-        if (type == 4) return make_unique<NodeVarAssign>();
-        if (type == 5) return make_unique<NodeClassBuiltIn>();
-        if (type == 6) return make_unique<NodeExec>();
-        if (type == 7) return make_unique<NodeBinOp>();
-        if (type == 8) return make_unique<NodeNumber>();
-        else std::runtime_error("Parser::get_node_by_index: unsupported type (not included in anyNode)");
     }
 };
 
