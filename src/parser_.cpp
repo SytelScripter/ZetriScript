@@ -47,45 +47,54 @@ const int nodesLen = 9;
 
 // definitions of all nodes
 struct NodeNumber {
+    int type = 8;
     Token_ num_tok;
 };
 
 struct NodeBinOp {
+    int type = 7;
     bintype left;
     Token_ op_tok;
     bintype right;
 };
 
 struct NodeExec {
+    int type = 6;
     variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>> executed;
 };
 
 struct NodeClassBuiltIn {
+    int type = 5;
     Token_ class_name_tok;
     vector<variant<unique_ptr<ParsePosition>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>> args;
 };
 
 struct NodeVarAssign {
+    int type = 4;
     Token_ var_name_tok;
     variant<unique_ptr<NodeExec>, unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>> value;
 };
 
 struct NodeVarAccess {
+    int type = 3;
     Token_ var_name_tok;
 };
 
 struct NodePosAccess {
+    int type = 2;
     variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> x;
     variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> y;
     variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> z;
 };
 
 struct NodeStmt {
+    int type = 1;
     ParsePosition pos;
     vector<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>> stmts;
 };
 
 struct NodeProg {
+    int type = 0;
     NodePosAccess entry_pos;
     vector<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>> prog;
 };
@@ -121,15 +130,15 @@ class ParseResult {
 
     private:
     auto get_node_by_index(int type) {
-        if (type == 0) return NodeProg;
-        if (type == 1) return NodeStmt;
-        if (type == 2) return NodePosAccess;
-        if (type == 3) return NodeVarAccess;
-        if (type == 4) return NodeVarAssign;
-        if (type == 5) return NodeClassBuiltIn;
-        if (type == 6) return NodeExec;
-        if (type == 7) return NodeBinOp;
-        if (type == 8) return NodeNumber;
+        if (type == 0) return make_unique<NodeProg>();
+        if (type == 1) return make_unique<NodeStmt>();
+        if (type == 2) return make_unique<NodePosAccess>();
+        if (type == 3) return make_unique<NodeVarAccess>();
+        if (type == 4) return make_unique<NodeVarAssign>();
+        if (type == 5) return make_unique<NodeClassBuiltIn>();
+        if (type == 6) return make_unique<NodeExec>();
+        if (type == 7) return make_unique<NodeBinOp>();
+        if (type == 8) return make_unique<NodeNumber>();
         else std::runtime_error("Parser::get_node_by_index: unsupported type (not included in anyNode)");
     }
 };
