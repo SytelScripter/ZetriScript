@@ -91,7 +91,7 @@ class ParseResult {
     inline void register_(function<unique_ptr<ParseResult>()> parse_func) {
         unique_ptr<ParseResult> temp = parse_func();
         if (temp->error.empty()) {
-            node = move(temp->node);
+            node = move(temp->visit_node());
             return;
         }
         error = move(temp->error);
