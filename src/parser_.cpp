@@ -16,7 +16,7 @@ struct NodeStmt;
 struct NodeProg;
 
 // usings
-using std::variant, std::vector, std::unique_ptr, std::make_unique, std::move, std::string;
+using std::variant, std::vector, std::unique_ptr, std::make_unique, std::move, std::string, std::function, std::visit;
 using anyNode = variant<
     unique_ptr<NodeProg>, 
     unique_ptr<NodeStmt>, 
@@ -87,8 +87,22 @@ class ParseResult {
     ErrorSyntax error;
 
     ParseResult() {}
-    ParseResult(ErrorSyntax error_) : error(error_) {}
-    ParseResult(anyNode node_) : node(move(node_)), error(ErrorSyntax()) {}
+
+    inline void register_(function<unique_ptr<ParseResult>()> parse_func) {
+        unique_ptr<ParseResult> temp = parse_func();
+        if (temp->error.empty()) {
+            node = move(temp->node);
+            return;
+        }
+        error = move(temp->error);
+        return;
+    }
+
+    inline auto visit_node() {
+        return move(visit([](const auto& node_) {
+            return node_;
+        }, node));
+    }
 };
 
 class Parser {
@@ -109,7 +123,8 @@ class Parser {
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> temp_result = make_unique<ParseResult>();
-        node->left = visit_node(move(temp_result), [this]() { return parse_factor(); });
+        temp_result->register_([this]() { return parse_factor(); });
+        node->left = temp_result->visit_node();
 
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -117,8 +132,8 @@ class Parser {
             advance();
             node->op_tok = op_tok;
 
-
-            node->right = visit_node(move(temp_result), [this]() { return parse_factor(); });
+            temp_result->register_([this]() { return parse_factor(); });
+            node->right = temp_result->visit_node();
         }
 
         return parse_result(move(node));
@@ -148,23 +163,4 @@ class Parser {
         unique_ptr<ParseResult> result = make_unique<ParseResult>(move(wrapped_node));
         return result;
     }
-
-    inline unique_ptr<ParseResult> visit_node(unique_ptr<ParseResult> temp_result, std::function<unique_ptr<ParseResult>()> node_visited) {
-        temp_result = move(node_visited());
-        if (!temp_result->error.isEmpty()) return move(temp_result);
-        return move(std::visit(
-            [this](auto&& arg) -> unique_ptr<ParseResult> { // Capture `this` to access non-static members
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, std::unique_ptr<NodeNumber>> ||
-                              std::is_same_v<T, std::unique_ptr<NodeBinOp>> ||
-                              std::is_same_v<T, std::unique_ptr<NodeVarAccess>>) {
-                    return make_unique<ParseResult>(move(arg));
-                } else {
-                    throw std::runtime_error("Unexpected type in variant");
-                }
-            },
-            temp_result->node
-        ));
-    }
-    
 };
