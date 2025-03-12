@@ -43,6 +43,7 @@ using bintype = variant<
     unique_ptr<NodeBinOp>,
     unique_ptr<NodeVarAccess>
 >;
+const int nodesLen = 9;
 
 // definitions of all nodes
 struct NodeNumber {
@@ -109,19 +110,41 @@ class ParseResult {
     }
 
     // extract node extracts from the node variant existing, but it doesn't check every type, it checks only types that are given in the function.
-    template <typename... Ts>
-    inline auto extract_node() const {
-        // Loop through the types provided as template parameters.
-        // This way, we don't need recursion, just a single pass through the types.
-        (void)std::initializer_list<int>{(
-            // Check if the variant holds this type and return the corresponding pointer
-            if (holds_alternative<Ts>(node)) {
-                return std::get<Ts>(node).get();
+    auto extract_node(std::vector<int> types) {
+        int existing_type = node.index();
+        for (int type : types) {
+            if (type == existing_type) {
+                return get<get_node_by_index(type)>(node);
             }
-            , 0)...};
+        }
+    }
 
-        // If no matching type is found, throw an exception.
-        throw std::runtime_error("Parser::extract_node(): Invalid node type");
+    template <typename nodeT>
+    int get_i() {
+        if (nodeT == typeid(NodeNumber)) return 8;
+        if (nodeT == typeid(NodeBinOp)) return 7;
+        if (nodeT == typeid(NodeExec)) return 6;
+        if (nodeT == typeid(NodeClassBuiltIn)) return 5;
+        if (nodeT == typeid(NodeVarAssign)) return 4;
+        if (nodeT == typeid(NodeVarAccess)) return 3;
+        if (nodeT == typeid(NodePosAccess)) return 2;
+        if (nodeT == typeid(NodeStmt)) return 1;
+        if (nodeT == typeid(NodeProg)) return 0;
+        else std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
+    }
+
+    private:
+    auto get_node_by_index(int type) {
+        if (type == 0) return typeid(NodeProg);
+        if (type == 1) return typeid(NodeStmt);
+        if (type == 2) return typeid(NodePosAccess);
+        if (type == 3) return typeid(NodeVarAccess);
+        if (type == 4) return typeid(NodeVarAssign);
+        if (type == 5) return typeid(NodeClassBuiltIn);
+        if (type == 6) return typeid(NodeExec);
+        if (type == 7) return typeid(NodeBinOp);
+        if (type == 8) return typeid(NodeNumber);
+        else std::runtime_error("Parser::get_node_by_index: unsupported type (not included in anyNode)");
     }
 };
 
@@ -144,7 +167,8 @@ class Parser {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
         result->register_([this]() { return parse_factor(); });
-        node->left = move(result->extract_node<NodeNumber, NodeBinOp, NodeVarAccess>());
+        std::vector<int> types = { get_i<NodeNumber>(), get_i<NodeBinOp>(), get_i<NodeVarAccess>() };
+        node->left = move(result->extract_node(types));
 
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -153,7 +177,7 @@ class Parser {
             node->op_tok = op_tok;
 
             result->register_([this]() { return parse_factor(); });
-            node->right = move(result->extract_node<NodeNumber, NodeBinOp, NodeVarAccess>());
+            node->right = move(result->extract_node(types));
         }
 
         return parse_result(move(node));
