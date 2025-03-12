@@ -16,7 +16,7 @@ struct NodeStmt;
 struct NodeProg;
 
 // usings
-using std::variant, std::vector, std::unique_ptr, std::make_unique, std::move, std::string, std::function, std::holds_alternative, std::visit;
+using std::variant, std::get, std::vector, std::unique_ptr, std::make_unique, std::move, std::string, std::function, std::holds_alternative, std::visit;
 using anyNode = variant<
     unique_ptr<NodeProg>, 
     unique_ptr<NodeStmt>, 
