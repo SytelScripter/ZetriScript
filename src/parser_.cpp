@@ -151,7 +151,7 @@ class Parser {
         return result;
     }
 
-    inline auto visit_node(unique_ptr<ParseResult> temp_result, std::function<unique_ptr<ParseResult>> node_visited) {
+    inline auto visit_node(unique_ptr<ParseResult> temp_result, std::function<unique_ptr<ParseResult>()> node_visited) {
         temp_result = move(node_visited());
         if (!temp_result->error.isEmpty()) return move(temp_result);
         return move(std::visit(
