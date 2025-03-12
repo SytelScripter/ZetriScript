@@ -110,7 +110,7 @@ class ParseResult {
 
     inline void register_(function<unique_ptr<ParseResult>()> parse_func) {
         unique_ptr<ParseResult> temp = parse_func();
-        if (temp->error.empty()) {
+        if (temp->error.isEmpty()) {
             node = move(temp->extract_node());
             return;
         }
@@ -123,16 +123,19 @@ class ParseResult {
         int existing_type = node.index();
         for (int type : types) {
             if (type == existing_type) {
-                if (type == 0) return move(get<unique_ptr<NodeProg>>(node));
-                if (type == 1) return move(get<unique_ptr<NodeStmt>>(node));
-                if (type == 2) return move(get<unique_ptr<NodePosAccess>>(node));
-                if (type == 3) return move(get<unique_ptr<NodeVarAccess>>(node));
-                if (type == 4) return move(get<unique_ptr<NodeVarAssign>>(node));
-                if (type == 5) return move(get<unique_ptr<NodeClassBuiltIn>>(node));
-                if (type == 6) return move(get<unique_ptr<NodeExec>>(node));
-                if (type == 7) return move(get<unique_ptr<NodeBinOp>>(node));
-                if (type == 8) return move(get<unique_ptr<NodeNumber>>(node));
-                throw std::runtime_error("Invalid node type");
+                switch (type) {
+                    case 0: return std::move(std::get<std::unique_ptr<NodeProg>>(node));
+                    case 1: return std::move(std::get<std::unique_ptr<NodeStmt>>(node));
+                    case 2: return std::move(std::get<std::unique_ptr<NodePosAccess>>(node));
+                    case 3: return std::move(std::get<std::unique_ptr<NodeVarAccess>>(node));
+                    case 4: return std::move(std::get<std::unique_ptr<NodeVarAssign>>(node));
+                    case 5: return std::move(std::get<std::unique_ptr<NodeClassBuiltIn>>(node));
+                    case 6: return std::move(std::get<std::unique_ptr<NodeExec>>(node));
+                    case 7: return std::move(std::get<std::unique_ptr<NodeBinOp>>(node));
+                    case 8: return std::move(std::get<std::unique_ptr<NodeNumber>>(node));
+                    default:
+                        throw std::runtime_error("Invalid type index in variant");
+                }
             }
         }
         throw std::runtime_error("Invalid node type");
@@ -157,8 +160,9 @@ class Parser {
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
+        std::vector<int> types = { get_i<NodeNumber>(), get_i<NodeBinOp>(), get_i<NodeVarAccess>() }; // {8, 7, 3}
+
         result->register_([this]() { return parse_factor(); });
-        std::vector<int> types = { get_i<NodeNumber>(), get_i<NodeBinOp>(), get_i<NodeVarAccess>() };
         node->left = move(result->extract_node(types));
 
 
@@ -203,14 +207,14 @@ class Parser {
     template <typename nodeT>
     int get_i() {
         if (std::is_same_v<nodeT, NodeNumber>) return 8;
-        if (std::is_same_v<nodeT, NodeBinOp>) return 7;
-        if (std::is_same_v<nodeT, NodeExec>) return 6;
-        if (std::is_same_v<nodeT, NodeClassBuiltIn>) return 5;
-        if (std::is_same_v<nodeT, NodeVarAssign>) return 4;
-        if (std::is_same_v<nodeT, NodeVarAccess>) return 3;
-        if (std::is_same_v<nodeT, NodePosAccess>) return 2;
-        if (std::is_same_v<nodeT, NodeStmt>) return 1;
-        if (std::is_same_v<nodeT, NodeProg>) return 0;
+        else if (std::is_same_v<nodeT, NodeBinOp>) return 7;
+        else if (std::is_same_v<nodeT, NodeExec>) return 6;
+        else if (std::is_same_v<nodeT, NodeClassBuiltIn>) return 5;
+        else if (std::is_same_v<nodeT, NodeVarAssign>) return 4;
+        else if (std::is_same_v<nodeT, NodeVarAccess>) return 3;
+        else if (std::is_same_v<nodeT, NodePosAccess>) return 2;
+        else if (std::is_same_v<nodeT, NodeStmt>) return 1;
+        else if (std::is_same_v<nodeT, NodeProg>) return 0;
         else throw std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
     }
 
