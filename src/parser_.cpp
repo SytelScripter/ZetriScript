@@ -197,15 +197,15 @@ class Parser {
 
     template <typename nodeT>
     int get_i() {
-        if (std::is_same_v<nodeT, std::decay_t<decltype(NodeNumber)>>) return 8;
-        if (std::is_same_v<nodeT, std::decay_t<decltype(NodeBinOp)>>) return 7;
-        if (std::is_same_v<nodeT, std::decay_t<decltype(NodeExec)>>) return 6;
-        if (std::is_same_v<nodeT, std::decay_t<decltype(NodeClassBuiltIn)>>) return 5;
-        if (std::is_same_v<nodeT, std::decay_t<decltype(NodeVarAssign)>>) return 4;
-        if (std::is_same_v<nodeT, std::decay_t<decltype(NodeVarAccess)>>) return 3;
-        if (std::is_same_v<nodeT, std::decay_t<decltype(NodePosAccess)>>) return 2;
-        if (std::is_same_v<nodeT, std::decay_t<decltype(NodeStmt)>>) return 1;
-        if (std::is_same_v<nodeT, std::decay_t<decltype(NodeProg)>>) return 0;
+        if (std::is_same_v<nodeT, NodeNumber>) return 8;
+        if (std::is_same_v<nodeT, NodeBinOp>) return 7;
+        if (std::is_same_v<nodeT, NodeExec>) return 6;
+        if (std::is_same_v<nodeT, NodeClassBuiltIn>) return 5;
+        if (std::is_same_v<nodeT, NodeVarAssign>) return 4;
+        if (std::is_same_v<nodeT, NodeVarAccess>) return 3;
+        if (std::is_same_v<nodeT, NodePosAccess>) return 2;
+        if (std::is_same_v<nodeT, NodeStmt>) return 1;
+        if (std::is_same_v<nodeT, NodeProg>) return 0;
         else std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
     }
 
