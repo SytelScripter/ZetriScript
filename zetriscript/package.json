@@ -13,7 +13,7 @@
     "languages": [{
       "id": "zetriscript",
       "aliases": ["ZetriScript", "zetriscript"],
-      "extensions": [".zs .zetri"],
+      "extensions": [".zs", ".zetri"],
       "configuration": "./language-configuration.json"
     }],
     "grammars": [{
