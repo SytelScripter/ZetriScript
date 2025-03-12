@@ -16,7 +16,7 @@ struct NodeStmt;
 struct NodeProg;
 
 // usings
-using std::variant, std::vector, std::unique_ptr, std::make_unique, std::move, std::string, std::function, std::visit;
+using std::variant, std::vector, std::unique_ptr, std::make_unique, std::move, std::string, std::function, std::holds_alternative, std::visit;
 using anyNode = variant<
     unique_ptr<NodeProg>, 
     unique_ptr<NodeStmt>, 
@@ -91,17 +91,23 @@ class ParseResult {
     inline void register_(function<unique_ptr<ParseResult>()> parse_func) {
         unique_ptr<ParseResult> temp = parse_func();
         if (temp->error.empty()) {
-            node = move(temp->visit_node());
+            node = move(temp->extract_node());
             return;
         }
         error = move(temp->error);
         return;
     }
 
-    inline auto visit_node() {
-        return move(visit([](const auto& node_) {
-            return node_;
-        }, node));
+    inline auto extract_node() {
+        if      (holds_alternative<unique_ptr<NodeProg>>(node)) return move(get<unique_ptr<NodeProg>>(node));
+        else if (holds_alternative<unique_ptr<NodeStmt>>(node)) return move(get<unique_ptr<NodeStmt>>(node));
+        else if (holds_alternative<unique_ptr<NodePosAccess>>(node)) return move(get<unique_ptr<NodePosAccess>>(node));
+        else if (holds_alternative<unique_ptr<NodeVarAccess>>(node)) return move(get<unique_ptr<NodeVarAccess>>(node));
+        else if (holds_alternative<unique_ptr<NodeVarAssign>>(node)) return move(get<unique_ptr<NodeVarAssign>>(node));
+        else if (holds_alternative<unique_ptr<NodeClassBuiltIn>>(node)) return move(get<unique_ptr<NodeClassBuiltIn>>(node));
+        else if (holds_alternative<unique_ptr<NodeExec>>(node)) return move(get<unique_ptr<NodeExec>>(node));
+        else if (holds_alternative<unique_ptr<NodeBinOp>>(node)) return move(get<unique_ptr<NodeBinOp>>(node));
+        else if (holds_alternative<unique_ptr<NodeNumber>>(node)) return move(get<unique_ptr<NodeNumber>>(node));
     }
 };
 
@@ -124,7 +130,7 @@ class Parser {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
         result->register_([this]() { return parse_factor(); });
-        node->left = result->visit_node();
+        node->left = result->extract_node();
 
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -133,7 +139,7 @@ class Parser {
             node->op_tok = op_tok;
 
             result->register_([this]() { return parse_factor(); });
-            node->right = result->visit_node();
+            node->right = result->extract_node();
         }
 
         return parse_result(move(node));
