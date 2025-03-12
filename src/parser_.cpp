@@ -148,7 +148,7 @@ class Parser {
             node->op_tok = op_tok;
 
             result->register_([this]() { return parse_factor(); });
-            node->right = result->extract_node();
+            node->right = move(result->extract_node());
         }
 
         return parse_result(move(node));
