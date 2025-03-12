@@ -56,8 +56,36 @@ class Interpreter {
     }
 
     string visitNodeBinOp(unique_ptr<NodeBinOp> node) {
-        string left = visitExpr(node->left);
-        string right = visitExpr(node->right);
+        string left = visit([](auto&& node) -> string {
+            using T = std::decay_t<decltype(value)>;
+            if (std::is_same_v<T, unique_ptr<NodeVarAccess>>) {
+                return visitNodeVarAccess(node);
+            }
+            else if (std::is_same_v<T, unique_ptr<NodeNumber>>) {
+                return visitNodeNumber(node);
+            }
+            else if (std::is_same_v<T, unique_ptr<NodeBinOp>>) {
+                return visitNodeBinOp(node);
+            }
+            else {
+                throw std::runtime_error("Invalid binary operator");
+            }
+        }, node->left);
+        string right = visit([](auto&& node) -> string {
+            using T = std::decay_t<decltype(value)>;
+            if (std::is_same_v<T, unique_ptr<NodeVarAccess>>) {
+                return visitNodeVarAccess(node);
+            }
+            else if (std::is_same_v<T, unique_ptr<NodeNumber>>) {
+                return visitNodeNumber(node);
+            }
+            else if (std::is_same_v<T, unique_ptr<NodeBinOp>>) {
+                return visitNodeBinOp(node);
+            }
+            else {
+                throw std::runtime_error("Invalid binary operator");
+            }
+        }, node->right);
         if (node->op.type == toktype::plus) {
             return std::to_string(std::stoi(left) + std::stoi(right));
         } else if (node->op.type == toktype::minus) {
@@ -90,25 +118,25 @@ class Interpreter {
         // bintype z = move(node->z);
         string x, y, z;
         if (std::holds_alternative<NodeNumber>(node->x))
-            x = visitNodeNumber(node->x);
+            x = visitNodeNumber(get<NodeNumber>(node->x));
         else if (std::holds_alternative<NodeBinOp>(node->x))
-            x = visitNodeBinOp(node->x);
+            x = visitNodeBinOp(get<NodeBinOp>(node->x));
         else if (std::holds_alternative<NodeVarAccess>(node->x))
-            x = visitNodeVarAccess(node->x);
+            x = visitNodeVarAccess(get<NodeVarAccess>(node->x));
 
         if (std::holds_alternative<NodeNumber>(node->y))
-            y = visitNodeNumber(node->y);
+            y = visitNodeNumber(get<NodeNumber>(node->y));
         else if (std::holds_alternative<NodeBinOp>(node->y))
-            y = visitNodeBinOp(node->y);
+            y = visitNodeBinOp(get<NodeBinOp>(node->y));
         else if (std::holds_alternative<NodeVarAccess>(node->y))
-            y = visitNodeVarAccess(node->y);
+            y = visitNodeVarAccess(get<NodeVarAccess>(node->y));
 
         if (std::holds_alternative<NodeNumber>(node->z))
-            z = visitNodeNumber(node->z);
+            z = visitNodeNumber(get<NodeNumber>(node->z));
         else if (std::holds_alternative<NodeBinOp>(node->z))
-            z = visitNodeBinOp(node->z);
+            z = visitNodeBinOp(get<NodeBinOp>(node->z));
         else if (std::holds_alternative<NodeVarAccess>(node->z))
-            z = visitNodeVarAccess(node->z);
+            z = visitNodeVarAccess(get<NodeVarAccess>(node->z));
 
         return ParsePosition(x, y, z);
     }
