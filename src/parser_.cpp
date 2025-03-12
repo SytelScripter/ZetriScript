@@ -158,13 +158,13 @@ class Parser {
 
         result->node = move(node);
 
-        return result;
+        return move(result);
     }
 
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
-        std::vector<int> types = { get_i<NodeNumber>(), get_i<NodeBinOp>(), get_i<NodeVarAccess>() }; // {8, 7, 3}
+        std::vector<int> types = { get_i<unique_ptr<NodeNumber>>(), get_i<unique_ptr<NodeBinOp>>(), get_i<unique_ptr<NodeVarAccess>>() }; // {8, 7, 3}
 
         result->register_([this]() { return parse_factor(); });
         if (!result->error.isEmpty()) return result;
@@ -212,15 +212,15 @@ class Parser {
 
     template <typename nodeT>
     int get_i() {
-        if (std::is_same_v<nodeT, NodeNumber>) return 8;
-        else if (std::is_same_v<nodeT, NodeBinOp>) return 7;
-        else if (std::is_same_v<nodeT, NodeExec>) return 6;
-        else if (std::is_same_v<nodeT, NodeClassBuiltIn>) return 5;
-        else if (std::is_same_v<nodeT, NodeVarAssign>) return 4;
-        else if (std::is_same_v<nodeT, NodeVarAccess>) return 3;
-        else if (std::is_same_v<nodeT, NodePosAccess>) return 2;
-        else if (std::is_same_v<nodeT, NodeStmt>) return 1;
-        else if (std::is_same_v<nodeT, NodeProg>) return 0;
+        if      (std::is_same_v<nodeT, unique_ptr<NodeNumber>>) return 8;
+        else if (std::is_same_v<nodeT, unique_ptr<NodeBinOp>>) return 7;
+        else if (std::is_same_v<nodeT, unique_ptr<NodeExec>>) return 6;
+        else if (std::is_same_v<nodeT, unique_ptr<NodeClassBuiltIn>>) return 5;
+        else if (std::is_same_v<nodeT, unique_ptr<NodeVarAssign>>) return 4;
+        else if (std::is_same_v<nodeT, unique_ptr<NodeVarAccess>>) return 3;
+        else if (std::is_same_v<nodeT, unique_ptr<NodePosAccess>>) return 2;
+        else if (std::is_same_v<nodeT, unique_ptr<NodeStmt>>) return 1;
+        else if (std::is_same_v<nodeT, unique_ptr<NodeProg>>) return 0;
         else throw std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
     }
 
