@@ -108,25 +108,19 @@ class ParseResult {
     }
 
     template <typename... Types>
-    unique_ptr<std::remove_pointer_t<Types>> extract_node() {
-        unique_ptr<std::remove_pointer_t<Types>> result = nullptr;
-
-        // Fold expression or recursive check for each type in Types pack
-        (try_extract<Types>(result), ...);
-
-        if (result == nullptr) {
-            throw std::runtime_error("Node type mismatch");
-        }
-        return result;
+    unique_ptr<std::decay_t<Types>> extract_node() {
+        return extract_node_impl<Types...>();
     }
     
     private:
-    template <typename T>
-    void try_extract(unique_ptr<T>& result) {
-        if (holds_alternative<unique_ptr<T>>(node)) {
-            result = move(get<unique_ptr<T>>(node));  // Move the node of type T
-            std::cout << "Extracted node of type: " << typeid(T).name() << "\n";
+    template <typename T, typename... Types>
+    std::unique_ptr<std::decay_t<T>> extract_node_impl() {
+        // Check if the node holds the type T
+        if (holds_alternative<std::unique_ptr<T>>(node)) {
+            return std::move(get<std::unique_ptr<T>>(node));
         }
+        // Recursively check the next type in the pack if not matched
+        return extract_node_impl<Types...>();
     }
 };
 
