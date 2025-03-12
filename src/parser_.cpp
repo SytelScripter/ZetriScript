@@ -119,6 +119,34 @@ class Parser {
             advance();
         }
 
+    unique_ptr<ParseResult> parse_position() {
+        unique_ptr<ParseResult> result_position = make_unique<ParseResult>();
+        if (!is_tok_type(toktype::left_square)) {
+            if (!is_tok_type(toktype::int_lit) && !is_tok_type(toktype::float_lit)) {
+                ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+                result_position->error = ErrorSyntax(parse_position, std::string("EXPECTED '['"));
+                return move(result_position);
+            }
+            unique_ptr<ParseResult> node = move(parse_expr());
+            return move(node);
+        }
+        advance(); // '['
+        unique_ptr<NodePosAccess> node = make_unique<NodePosAccess>();
+        node->x = parse_expr();
+        std::optional<unique_ptr<ParseResult>> temp = check_error(toktype::comma);
+        if (temp.has_value()) return move(temp.value());
+        advance(); // ','
+        node->y = parse_expr();
+        std::optional<unique_ptr<ParseResult>> temp = check_error(toktype::comma);
+        if (temp.has_value()) return move(temp.value());
+        node->z = parse_expr();
+        std::optional<unique_ptr<ParseResult>> temp = check_error(toktype::right_square);
+        if (temp.has_value()) return move(temp.value());
+        advance(); // ']'
+        result_position->node = move(node);
+        return move(result_position);
+    }
+
     unique_ptr<ParseResult> parse_factor() {
         unique_ptr<ParseResult> result_factor = make_unique<ParseResult>();
         TokenPosition start_pos = current_tok.posStart;
@@ -203,7 +231,7 @@ class Parser {
         unique_ptr<NodeExec> node = make_unique<NodeExec>();
         variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>> executed;
 
-        if (is_tok_type(toktype::name)) {
+        if (is_tok_type(toktype::name) || is_tok(toktype::keyword, "goto")) {
             Token_ name = tokens[idx++];
             std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
             if (temp.has_value()) return move(temp.value());
@@ -221,7 +249,40 @@ class Parser {
             result_exec->node = move(node);
             return move(result_exec);
         }
+        else {
+            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+            result_exec->error = ErrorSyntax(parse_position, std::string("EXPECTED NAME OR 'goto' OR 'class builtin', BUT GOT: '") + current_tok.to_string() + std::string("'"));
+            return move(result_exec);
+        }
+    }
 
+    unique_ptr<ParseResult> parse_class_builtin() {
+        unique_ptr<ParseResult> result_class_builtin = make_unique<ParseResult>();
+        unique_ptr<NodeClassBuiltIn> node = make_unique<NodeClassBuiltIn>();
+        if (!is_tok_type(toktype::keyword)) {
+            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN);
+            result_class_builtin->error = ErrorSyntax(parse_position, "EXPECTED 'class'");
+            return move(result_class_builtin);
+        }
+        Token_ class_name = tokens[idx++];
+        std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::left_paren));
+        if (temp.has_value()) return move(temp.value());
+        advance(); // '('
+
+        vector<variant<ParsePosition, unique_ptr<NodeExpr>>> args;
+        while (idx < tokens.size() && !is_tok_type(toktype::right_paren)) {
+            ParseResult parse_result = parse_expr();
+            if (!parse_result.error.isEmpty()) return move(parse_result);
+            args.push_back(parse_result.node);
+            if (idx < tokens.size() && is_tok_type(toktype::comma)) {
+                advance();
+            }
+        }
+
+        node->class_name_tok = class_name;
+        node->args = move(args);
+        result_class_builtin->node = move(node);
+        return move(result_class_builtin);
     }
 
     private:
