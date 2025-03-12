@@ -120,13 +120,27 @@ class Parser {
 
     unique_ptr<ParseResult> parse_factor() {
         unique_ptr<ParseResult> result_factor = make_unique<ParseResult>();
+        TokenPosition start_pos = current_tok.posStart;
+        TokenPosition end_pos = current_tok.posEnd;
 
-        Token_ value = tokens[idx++];
-        unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
-        node->num_tok = value;
+        if (is_tok_type(toktype::int_lit) || is_tok_type(toktype::float_lit)) {
+            Token_ value = tokens[idx++];
+            unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
+            node->num_tok = value;
+            result_factor->node = move(node);
+            return move(result_factor);
+        }
+        else if (is_tok_type(toktype::name)) {
+            Token_ name_tok = tokens[idx++];
+            unique_ptr<NodeVarAccess> node = make_unique<NodeVarAccess>();
+            node->var_name_tok = name_tok;
+            result_factor->node = move(node);
+            return move(result_factor);
+        }
+        else if (is_tok_type)
 
-        result_factor->node = move(node);
-
+        ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
+        result_factor->error = ErrorSyntax(parse_position, std::string("EXPECTED INT_LIT, FLOAT_LIT, NAME, OR '(', BUT GOT: '") + current_tok.to_string() + std::string("'"));
         return move(result_factor);
     }
 
@@ -136,21 +150,8 @@ class Parser {
         
         if (!result_term->error.isEmpty()) return result_term;
         node->left = move(convert_node<bintype>(result_term->node));
-        // node->left = move(visit([](auto&& value) -> bintype {
-        //     using T = std::decay_t<decltype(value)>;
-        //     bintype result;
-        //     if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
-        //         return bintype{move(value)};
-        //     else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
-        //         return bintype{move(value)};
-        //     else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
-        //         return bintype{move(value)};
-        //     else 
-        //         throw std::runtime_error("Invalid token type in parse_term");
-        //     return result;
-        // }, result_term->node));
 
-        while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
+        while (is_tok_type(toktype::mul) || is_tok_type(toktype::minus)) {
             Token_ op_tok = current_tok;
             advance();
             node->op_tok = op_tok;
@@ -158,17 +159,26 @@ class Parser {
             result_term = move(parse_factor());
             if (!result_term->error.isEmpty()) return result_term;
             node->right = move(convert_node<bintype>(result_term->node));
-            // node->right = move(visit([](auto&& value) -> bintype {
-            //     using T = std::decay_t<decltype(value)>;
-            //     if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
-            //         return bintype{move(value)};
-            //     else if constexpr(std::is_same_v<T, unique_ptr<NodeBinOp>>)
-            //         return bintype{move(value)};
-            //     else if constexpr(std::is_same_v<T, unique_ptr<NodeVarAccess>>)
-            //         return bintype{move(value)};
-            //     else 
-            //         throw std::runtime_error("Invalid token type in parse_term");
-            // }, result_term->node));
+        }
+
+        return parse_result<unique_ptr<NodeBinOp>>(move(node));
+    }
+
+    unique_ptr<ParseResult> parse_expr() {
+        unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
+        unique_ptr<ParseResult> result_expr = move(parse_term());
+
+        if (!result_expr->error.isEmpty()) return result_expr;
+        node->left = move(convert_node<bintype>(result_expr->node));
+
+        while (is_tok_type(toktype::plus) || is_tok_type(toktype::minus)) {
+            Token_ op_tok = current_tok;
+            advance();
+            node->op_tok = op_tok;
+
+            result_expr = move(parse_term());
+            if (!result_expr->error.isEmpty()) return result_expr;
+            node->right = move(convert_node<bintype>(result_expr->node));
         }
 
         return parse_result<unique_ptr<NodeBinOp>>(move(node));
@@ -185,11 +195,11 @@ class Parser {
         }
     }
 
-    inline bool is_token_type(toktype type) const {
+    inline bool is_tok_type(toktype type) const {
         return current_tok.type == type;
     }
 
-    inline bool is_token(toktype type, const string& value) const {
+    inline bool is_tok(toktype type, const string& value) const {
         return current_tok.type == type && current_tok.value == value;
     }
 
@@ -221,23 +231,6 @@ class Parser {
     variantT convert_node(const anyNode& nodeAssigned) {
         return convert_node_impl<variantT>(nodeAssigned);  // Start recursion from index 0
     }
-
-
-
-    template <typename nodeT>
-    int get_i() {
-        if (std::is_same_v<nodeT, unique_ptr<NodeProg>>) return 0;
-        if (std::is_same_v<nodeT, unique_ptr<NodeStmt>>) return 1;
-        if (std::is_same_v<nodeT, unique_ptr<NodePosAccess>>) return 2;
-        if (std::is_same_v<nodeT, unique_ptr<NodeVarAccess>>) return 3;
-        if (std::is_same_v<nodeT, unique_ptr<NodeVarAssign>>) return 4;
-        if (std::is_same_v<nodeT, unique_ptr<NodeClassBuiltIn>>) return 5;
-        if (std::is_same_v<nodeT, unique_ptr<NodeExec>>) return 6;
-        if (std::is_same_v<nodeT, unique_ptr<NodeBinOp>>) return 7;
-        if (std::is_same_v<nodeT, unique_ptr<NodeNumber>>) return 8;
-        else throw std::runtime_error("Parser::get_index: unsupported type (not included in anyNode)");
-    }
-
 };
 
 int main() {

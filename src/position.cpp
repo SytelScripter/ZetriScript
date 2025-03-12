@@ -2,6 +2,7 @@
 #pragma once
 
 enum specialpos {
+    UNKNOWN = -1,
     ENTRY,
     POS_DECL,
     POSITION
@@ -52,3 +53,16 @@ class ParsePosition {
         return true;
     }
 };
+
+inline std::string specialPosToString(specialpos pos) {
+    switch (pos) {
+        case ENTRY:
+            return "ENTRY";
+        case POS_DECL:
+            return "POS_DECL";
+        case POSITION:
+            return "POSITION";
+        default:
+            return "UNKNOWN";
+    }
+}
