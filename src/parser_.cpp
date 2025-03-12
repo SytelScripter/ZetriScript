@@ -122,9 +122,9 @@ class Parser {
 
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<NodeBinOp> node = make_unique<NodeBinOp>();
-        unique_ptr<ParseResult> temp_result = make_unique<ParseResult>();
-        temp_result->register_([this]() { return parse_factor(); });
-        node->left = temp_result->visit_node();
+        unique_ptr<ParseResult> result = make_unique<ParseResult>();
+        result->register_([this]() { return parse_factor(); });
+        node->left = result->visit_node();
 
 
         while (is_token_type(toktype::mul) || is_token_type(toktype::minus)) {
@@ -132,8 +132,8 @@ class Parser {
             advance();
             node->op_tok = op_tok;
 
-            temp_result->register_([this]() { return parse_factor(); });
-            node->right = temp_result->visit_node();
+            result->register_([this]() { return parse_factor(); });
+            node->right = result->visit_node();
         }
 
         return parse_result(move(node));
@@ -160,7 +160,8 @@ class Parser {
 
     inline unique_ptr<ParseResult> parse_result(anyNode node) {
         anyNode wrapped_node = move(node);
-        unique_ptr<ParseResult> result = make_unique<ParseResult>(move(wrapped_node));
+        unique_ptr<ParseResult> result = make_unique<ParseResult>();
+        result->node = move(wrapped_node);
         return result;
     }
 };
