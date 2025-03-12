@@ -65,7 +65,7 @@ struct NodeGoto {
 };
 
 struct NodeExec {
-    variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>> executed;
+    variant<unique_ptr<NodeGoto>, unique_ptr<NodeVarAccess>> executed;
 };
 
 struct NodeClassBuiltIn {
@@ -265,24 +265,18 @@ class Parser {
             return move(result_exec);
         }
         else if (is_tok_type(toktype::keyword) && tokens[idx+1].type == toktype::left_paren) {
-            unique_ptr<ParseResult> class_result = parse_class_builtin();
-            if (class_result->error.isEmpty()) return class_result;
-            executed = move(convert_node<variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>>>(class_result->node));
-            unique_ptr<ParseResult> class_result = make_unique<ParseResult>();
-            unique_ptr<NodeClassBuiltIn> class_builtin = get<unique_ptr<NodeClassBuiltIn>>(executed);
-            class_builtin->node = move(class_builtin);
-            return move(class_builtin);
+            unique_ptr<ParseResult> class_result = move(parse_class_builtin());
+            return move(class_result);
         }
         else if (is_tok(toktype::keyword, "goto")) {
             unique_ptr<ParseResult> goto_result = move(parse_goto());
             if (!goto_result->error.isEmpty()) return goto_result;
             std::optional<unique_ptr<ParseResult>> temp = move(check_error(toktype::exc_mark));
             if (temp.has_value()) return move(temp.value());
-            executed = move(convert_node<variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeClassBuiltIn>>>(goto_result->node));
-            unique_ptr<ParseResult> goto_result = make_unique<ParseResult>();
-            unique_ptr<NodeGoto> goto_node = get<unique_ptr<NodeGoto>>(executed);
-            goto_node->node = move(goto_node);
-            return move(goto_node);
+            executed = move(convert_node<variant<unique_ptr<NodeGoto>, unique_ptr<NodeVarAccess>>>(goto_result->node));
+            node->executed = move(executed);
+            result_exec->node = move(node);
+            return move(result_exec);
         }
         else {
             ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
