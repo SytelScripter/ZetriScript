@@ -143,7 +143,7 @@ class Parser {
         unique_ptr<ParseResult> result_term = move(parse_factor());
         
         if (!result_term->error.isEmpty()) return result_term;
-        node->left = move(visit([](const auto&& value) -> bintype {
+        node->left = move(visit([](auto&& value) -> bintype {
             using T = std::decay_t<decltype(value)>;
             bintype result;
             if constexpr(std::is_same_v<T, unique_ptr<NodeNumber>>)
