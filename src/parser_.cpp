@@ -335,9 +335,9 @@ class Parser {
     unique_ptr<ParseResult> parse_stmt() {
         unique_ptr<ParseResult> result_stmt = make_unique<ParseResult>();
         unique_ptr<NodeStmt> node = make_unique<NodeStmt>();
-        unique_ptr<NodePosAccess> pos_access = move(parse_position());
+        unique_ptr<ParseResult> pos_access = move(parse_position());
         if (!pos_access->error.isEmpty()) return move(pos_access);
-        node->pos = move(pos_access);
+        node->pos = move(get<NodePosAccess>(pos_access->node));
 
         while (!is_tok_type(toktype::exc_mark)) {
             unique_ptr<ParseResult> var_assign_result = move(parse_var_assign());
