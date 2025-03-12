@@ -64,7 +64,7 @@ struct NodeExec {
 
 struct NodeClassBuiltIn {
     Token_ class_name_tok;
-    vector<variant<unique_ptr<ParsePosition>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>> args;
+    vector<variant<unique_ptr<NodePosAccess>, unique_ptr<NodeBinOp>, unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>>> args;
 };
 
 struct NodeVarAssign {
@@ -83,7 +83,7 @@ struct NodePosAccess {
 };
 
 struct NodeStmt {
-    ParsePosition pos;
+    unique_ptr<NodePosAccess> pos;
     vector<variant<unique_ptr<NodeClassBuiltIn>, unique_ptr<NodeVarAssign>, unique_ptr<NodeExec>>> stmts;
 };
 
