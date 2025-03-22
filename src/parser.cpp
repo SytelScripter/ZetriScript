@@ -141,7 +141,7 @@ class Parser {
             advance();
     }
 
-    ParseResult parse_factor() {
+    unique_ptr<ParseResult> parse_factor() {
         if (is_tok_type(toktype::int_lit) || is_tok_type(toktype::float_lit)) {
             ParsePosition parse_position = ParsePosition(current_tok.pos);
             unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
@@ -171,7 +171,7 @@ class Parser {
         }
     }
 
-    ParseResult parse_term() {
+    unique_ptr<ParseResult> parse_term() {
         ParseResult parse_factor_result = parse_factor();
         if (!parse_factor_result.error.isEmpty()) return parse_factor_result;
         while (is_tok(toktype::mul, "*") || is_tok(toktype::div, "/")) {
@@ -188,7 +188,7 @@ class Parser {
         return parse_factor_result;
     }
 
-    ParseResult parse_expr() {
+    unique_ptr<ParseResult> parse_expr() {
         ParseResult parse_term_result = parse_term();
         if (!parse_term_result.error.isEmpty()) return parse_term_result;
         while (is_tok(toktype::plus, "+") || is_tok(toktype::minus, "-")) {
