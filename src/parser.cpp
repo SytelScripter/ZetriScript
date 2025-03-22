@@ -200,7 +200,7 @@ class Parser {
             advance();
             unique_ptr<ParseResult> next_result = parse_factor();
             if (!next_result.error.isEmpty()) return next_result;
-            result->node = make_unique<NodeBinOp>(move(result->node), current_tok, move(next_result->node));
+            result->node = make_unique<NodeBinOp>(convert_node<expr_node>(move(result->node)), current_tok, convert_node<expr_node>(move(next_result->node)));
         }
         return result;
     }
