@@ -1,0 +1,25 @@
+{
+    "scopeName": "source.zetriscript",
+    "patterns": [
+        {
+            "match": "\\b(ZetriScript|goto|system|command)\\b",
+            "name": "builtin.keyword.zetriscript"
+        },
+        {
+            "match": "\\b(Point|Line|allocSpace)\\b",
+            "name": "builtin.class.zetriscript"
+        },
+        {
+            "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b",
+            "name": "variable.other.zetriscript"
+        },
+        {
+            "match": "\".*?\"",
+            "name": "string.quoted.double.zetriscript"
+        },
+        {
+            "match": "(\\b\\d+\\b)",
+            "name": "constant.numeric.zetriscript"
+        }
+    ]
+}

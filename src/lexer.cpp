@@ -78,6 +78,14 @@ public:
             Token_ result = Token_(posStart, posEnd, toktype::keyword, text);
             return result;
         }
+        if (std::find(const_list.begin(), const_list.end(), search_text) != const_list.end()) {
+            Token_ result = Token_(posStart, posEnd, toktype::const_builtin, text);
+            return result;
+        }
+        if (std::find(const_list.begin(), const_list.end(), search_text) != class_list.end()) {
+            Token_ result = Token_(posStart, posEnd, toktype::class_builtin, text);
+            return result;
+        }
         Token_ result = Token_(posStart, posEnd, toktype::name, text);
         return result;
     }

@@ -8,6 +8,8 @@ enum class toktype {
     none = -1,
     eof_,
     keyword,
+    const_builtin,
+    class_builtin,
     left_square,
     right_square,
     left_curly,
@@ -29,12 +31,22 @@ enum class toktype {
     dot
 };
 
-std::array<std::string, 5> keywords_list = {
-    "ZetriScript",
-    "LINE",
-    "allocSpace",
-    "drawPixel",
-    "goto"
+std::array<std::string, 3> keywords_list = {
+    "system",
+    "command",
+    "recall"
+};
+
+std::array<std::string, 3> const_list = {
+    "Euclidean",
+    "Equation",
+    "Parametric",
+};
+
+std::array<std::string, 3> class_list = {
+    "Point",
+    "Line",
+    "Plane"
 };
 
 class Token_ {

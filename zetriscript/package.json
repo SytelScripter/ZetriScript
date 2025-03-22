@@ -1,0 +1,32 @@
+{
+  "name": "zetriscript",
+  "displayName": "zetriscript-syntax",
+  "description": "\"Syntax Highlighting for ZetriScript\"",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.98.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "zetriscript",
+      "aliases": ["ZetriScript", "zetriscript"],
+      "extensions": [".zs", ".zetri"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "zetriscript",
+      "scopeName": "source.zetriscript",
+      "path": "./syntaxes/zetriscript.tmLanguage.json"
+    }],
+    "themes": [
+      {
+        "label": "ZetriScript Color Theme",
+        "uiTheme": "vs-dark",
+        "path": "./themes/zetriscript-color-theme.json"
+      }
+    ]
+  }
+}

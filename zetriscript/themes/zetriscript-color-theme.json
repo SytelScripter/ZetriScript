@@ -1,0 +1,43 @@
+{
+  "name": "ZetriScript Color Theme",
+  "type": "dark", 
+  "colors": {
+    "editor.background": "#1E1E1E",
+    "editor.foreground": "#D4D4D4",
+    "editorCursor.foreground": "#A7A7A7"
+  },
+  "tokenColors": [
+    {
+      "scope": "builtin.keyword.zetriscript",
+      "settings": {
+        "foreground": "#569CD6",  // Keywords (e.g., if, else)
+      }
+    },
+    {
+        "scope": "builtin.class.zetriscript",
+        "settings": {
+          "foreground": "#4EC9B0",  // Classes
+          "fontStyle": "bold"
+        }
+    },
+    {
+      "scope": "string.quoted.double.zetriscript",
+      "settings": {
+        "foreground": "#CE9178"  // Strings
+      }
+    },
+    {
+      "scope": "constant.numeric.zetriscript",
+      "settings": {
+        "foreground": "#B5CEA8"  // Numbers
+      }
+    },
+    {
+      "scope": "comment.line.double-slash.zetriscript",
+      "settings": {
+        "foreground": "#6A9955",  // Comments
+        "fontStyle": "italic"
+      }
+    }
+  ]
+}
