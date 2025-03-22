@@ -23,12 +23,12 @@ class ErrorIllegalChar {
 
 class ErrorSyntax {
     private:
-    Position pos;
+    Token_ pos;
     std::string details;
 
     public:
     ErrorSyntax() : pos(0, 0, 0), details("") {}
-    ErrorSyntax(Position pos_, const std::string &details_) : pos(pos_), details(details_) {}
+    ErrorSyntax(Token_ pos_, const std::string &details_) : pos(pos_), details(details_) {}
 
     inline void display() {
         if (pos.isSpecial()) {

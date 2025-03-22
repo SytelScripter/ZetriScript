@@ -18,9 +18,9 @@ private:
 
     inline void addToken_(toktype type_, char value_) {
         std::string value = std::string(1, value_);
-        TokenPosition posStart = TokenPosition(idx);
+        Position posStart = Position(idx);
         advance();
-        TokenPosition posEnd = TokenPosition(idx - 1);
+        Position posEnd = Position(idx - 1);
         Token_ result = Token_(posStart, posEnd, type_, value);
         tokens.push_back(result);
     }
@@ -68,12 +68,12 @@ public:
 
     Token_ makeText() {
         std::string text = "";
-        TokenPosition posStart = TokenPosition(idx);
+        Position posStart = Position(idx);
         while (idx < text.length() && std::isalpha(currentChar)) {
             text += currentChar;
             advance();
         }
-        TokenPosition posEnd = TokenPosition(idx - 1);
+        Position posEnd = Position(idx - 1);
         if (std::find(keywords_list.begin(), keywords_list.end(), text) != keywords_list.end()) {
             Token_ result = Token_(posStart, posEnd, toktype::keyword, text);
             return result;
@@ -93,7 +93,7 @@ public:
     Token_ makeNumber() {
         std::string num_str = "";
         int dot_count = 0;
-        TokenPosition posStart = TokenPosition(idx);
+        Position posStart = Position(idx);
 
         while (idx < text.length() && (std::isdigit(currentChar) || currentChar == '.')) {
             if (currentChar == '.') {
@@ -103,7 +103,7 @@ public:
             num_str += currentChar;
             advance();
         }
-        TokenPosition posEnd = TokenPosition(idx - 1);
+        Position posEnd = Position(idx - 1);
         if (dot_count == 0) {
             Token_ result = Token_(posStart, posEnd, toktype::int_lit, num_str);
             return result;

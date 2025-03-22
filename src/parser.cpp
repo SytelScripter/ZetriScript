@@ -11,7 +11,7 @@
 // declaration of all nodes
 struct NodeNumber;
 struct NodeVarAccess;
-struct NodeNodeParam;
+struct NodeParam;
 struct NodeBinOp;
 struct NodePosition;
 struct NodeMethodAccess;
@@ -189,7 +189,7 @@ class Parser {
             advance();
             return parse_result<unique_ptr<NodeBinOp>>(move(result->node), current_tok, parse_factor()->node);
         }
-        ErrorSyntax error = ErrorSyntax(current_tok, "Expected factor");
+        ErrorSyntax error = ErrorSyntax(current_tok, std::string("Expected factor"));
         return make_unique<ParseResult>(nullptr, error);
     }
 
