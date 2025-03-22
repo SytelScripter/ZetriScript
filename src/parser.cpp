@@ -30,6 +30,7 @@ using std::variant,
     std::vector, 
     std::unique_ptr, 
     std::make_unique, 
+    std::shared_ptr,
     std::move, 
     std::string, 
     std::function, 
@@ -38,7 +39,7 @@ using std::variant,
 using anyNode = variant<
     unique_ptr<NodeNumber>, 
     unique_ptr<NodeVarAccess>, 
-    unique_ptr<NodeNodeParam>, 
+    unique_ptr<NodeParam>, 
     unique_ptr<NodeBinOp>, 
     unique_ptr<NodePosition>, 
     unique_ptr<NodeMethodAccess>, 
@@ -49,8 +50,8 @@ using anyNode = variant<
     unique_ptr<NodeVarAssign>, 
     unique_ptr<NodeAllocation>, 
     unique_ptr<NodeStmt>, 
-    unique_ptr<NodeProg>>;
->
+    unique_ptr<NodeProg>
+>;
 
 struct NodeNumber {
     Token_ num_tok;
@@ -117,7 +118,7 @@ struct NodeVarAssign {
 struct NodeStmt {
     Token_ tok;
     variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAssign>, unique_ptr<NodeSystem>, unique_ptr<NodeCommand>, unique_ptr<NodeAllocation>, unique_ptr<NodeFunction>, unique_ptr<NodeMethodAccess>> stmt;
-}
+};
 
 struct NodeProg {
     vector<unique_ptr<NodeStmt>> statements;
