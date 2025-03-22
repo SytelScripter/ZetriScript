@@ -143,14 +143,16 @@ class Parser {
     ParseResult parse_factor() {
         if (is_tok_type(toktype::int_lit) || is_tok_type(toktype::float_lit)) {
             ParsePosition parse_position = ParsePosition(current_tok.pos);
-            unique_ptr<NodeNumber> node = make_unique<NodeNumber>(current_tok);
+            unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
+            node->num_tok = current_tok;
             advance();
             return parse_result(move(node));
         }
 
         else if (is_tok_type(toktype::name)) {
             ParsePosition parse_position = ParsePosition(current_tok.pos);
-            unique_ptr<NodeVarAccess> node = make_unique<NodeVarAccess>(current_tok);
+            unique_ptr<NodeVarAccess> node = make_unique<NodeVarAccess>();
+            node->var_tok = current_tok;
             advance();
             return parse_result(move(node));
         }
