@@ -8,7 +8,7 @@ enum specialpos {
     POSITION
 };
 
-class TokenPosition {
+class Position {
     public:
     int line = 0;
     int col = 0;
@@ -31,38 +31,3 @@ class TokenPosition {
         }
     }
 };
-
-class ParsePosition {
-    public:
-    specialpos specialPos;
-    std::string x;
-    std::string y;
-    std::string z;
-    TokenPosition realStartPos;
-    TokenPosition realEndPos;
-
-    ParsePosition(int x = 0) {}
-    ParsePosition(specialpos specialPos_) : specialPos(specialPos_) {}
-    ParsePosition(std::string xPos_, std::string yPos_, std::string zPos_) : x(xPos_), y(yPos_), z(zPos_) {}
-    ParsePosition(std::string xPos_, std::string yPos_, std::string zPos_, TokenPosition realStartPos_, TokenPosition realEndPos_) : x(xPos_), y(yPos_), z(zPos_), realStartPos(realStartPos_), realEndPos(realEndPos_) {}
-
-    bool isSpecial() {
-        if (!std::empty(x) && !std::empty(y) && !std::empty(z)) {
-            return false;
-        }
-        return true;
-    }
-};
-
-inline std::string specialPosToString(specialpos pos) {
-    switch (pos) {
-        case ENTRY:
-            return "ENTRY";
-        case POS_DECL:
-            return "POS_DECL";
-        case POSITION:
-            return "POSITION";
-        default:
-            return "UNKNOWN";
-    }
-}

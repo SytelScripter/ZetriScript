@@ -84,8 +84,3 @@ inline std::string token_arrows(std::string str, TokenPosition start, TokenPosit
     }
     return result;
 }
-
-inline std::string parser_arrows(ParsePosition pos) {
-    std::string result = token_arrows(pos.realStartPos.fileTxt, pos.realStartPos, pos.realEndPos);
-    return result;
-}

@@ -52,76 +52,105 @@ using anyNode = variant<
     unique_ptr<NodeStmt>, 
     unique_ptr<NodeProg>
 >;
+using expr_node = variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>>
 
 struct NodeNumber {
     Token_ num_tok;
+
+    NodeNumber(const Token_ &tok) : num_tok(tok) {}
 };
 
 struct NodeVarAccess {
     Token_ var_tok;
+
+    NodeVarAccess(const Token_ &tok) : var_tok(tok) {}
 };
 
 struct NodeParam {
     Token_ param_tok;
+
+    NodeParam(const Token_ &tok) : param_tok(tok) {}
 };
 
 struct NodeBinOp {
     variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> left;
     Token_ op_tok;
     variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>> right;
+
+    NodeBinOp(expr_node left_, const Token_ &op_tok_, expr_node right_) : left(move(left_)), op_tok(op_tok_), right(move(right_)) {}
 };
 
 struct NodePosition {
     Token_ x;
     Token_ y;
     Token_ z;
+
+    NodePosition(const Token_ &x_, const Token_ &y_, const Token_ &z_) : x(x_), y(y_), z(z_) {}
 };
 
 struct NodeAllocation {
-    NodePosition pos;
+    unique_ptr<NodePosition> pos;
     vector<unique_ptr<NodeStmt>> body;
+
+    NodeAllocation(unique_ptr<NodePosition> pos_, vector<unique_ptr<NodeStmt>> body_) : pos(move(pos_)), body(move(body_)) {}
 };
 
 struct NodeFunction {
     Token_ func_tok;
     vector<unique_ptr<NodeStmt>> body;
-};
 
-struct NodeSystem {
-    Token_ sys_tok;
-    vector<unique_ptr<NodeParam>> params;
-    vector<unique_ptr<NodeCommand>> body;
+    NodeFunction(const Token_ &func_tok_, vector<unique_ptr<NodeStmt>> body_) : func_tok(func_tok_), body(move(body_)) {}
 };
 
 struct NodeCommand {
     Token_ sys_tok;
     vector<unique_ptr<NodeParam>> params;
     vector<unique_ptr<NodeStmt>> body;
+
+    NodeCommand(const Token_ &sys_tok_, vector<unique_ptr<NodeParam>> params_, vector<unique_ptr<NodeStmt>> body_) : sys_tok(sys_tok_), params(move(params_)), body(move(body_)) {}
+};
+
+struct NodeSystem {
+    Token_ sys_tok;
+    vector<unique_ptr<NodeParam>> params;
+    vector<unique_ptr<NodeCommand>> body;
+
+    NodeSystem(const Token_ &sys_tok_, vector<unique_ptr<NodeParam>> params_, vector<unique_ptr<NodeCommand>> body_) : sys_tok(sys_tok_), params(move(params_)), body(move(body_)) {}
 };
 
 struct NodeClassBuiltIn {
     Token_ class_tok;
     Token_ usage;
     vector<unique_ptr<NodeBinOp>> params;
+
+    NodeClassBuiltIn(const Token_ &class_tok_, const Token_ &usage_, vector<unique_ptr<NodeBinOp>> params_) : class_tok(class_tok_), usage(usage_), params(move(params_)) {}
 };
 
 struct NodeMethodAccess {
     Token_ method_tok;
     Token_ class_tok;
+
+    NodeMethodAccess(const Token_ &method_tok_, const Token_ &class_tok_) : method_tok(method_tok_), class_tok(class_tok_) {}
 };
 
 struct NodeVarAssign {
     Token_ var_tok;
     unique_ptr<NodeBinOp> value;
+
+    NodeVarAssign(const Token_ &var_tok_, unique_ptr<NodeBinOp> value_) : var_tok(var_tok_), value(move(value_)) {}
 };
 
 struct NodeStmt {
     Token_ tok;
     variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAssign>, unique_ptr<NodeSystem>, unique_ptr<NodeCommand>, unique_ptr<NodeAllocation>, unique_ptr<NodeFunction>, unique_ptr<NodeMethodAccess>> stmt;
+
+    NodeStmt(const Token_ &tok_, variant<unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAssign>, unique_ptr<NodeSystem>, unique_ptr<NodeCommand>, unique_ptr<NodeAllocation>, unique_ptr<NodeFunction>, unique_ptr<NodeMethodAccess>> stmt_) : tok(tok_), stmt(move(stmt_)) {}
 };
 
 struct NodeProg {
-    vector<unique_ptr<NodeStmt>> statements;
+    vector<unique_ptr<NodeStmt>> stmts;
+
+    NodeProg(vector<unique_ptr<NodeStmt>> stmts_) : stmts(move(stmts_)) {}
 };
 
 
@@ -143,69 +172,50 @@ class Parser {
 
     unique_ptr<ParseResult> parse_factor() {
         if (is_tok_type(toktype::int_lit) || is_tok_type(toktype::float_lit)) {
-            ParsePosition parse_position = ParsePosition(current_tok.pos);
-            unique_ptr<NodeNumber> node = make_unique<NodeNumber>();
-            node->num_tok = current_tok;
+            unique_ptr<NodeNumber> result = make_unique<NodeNumber>(current_tok);
             advance();
-            return parse_result(move(node));
-        }
-
-        else if (is_tok_type(toktype::name)) {
-            ParsePosition parse_position = ParsePosition(current_tok.pos);
-            unique_ptr<NodeVarAccess> node = make_unique<NodeVarAccess>();
-            node->var_tok = current_tok;
+            return parse_result<unique_ptr<NodeNumber>>(move(result));
+        } else if (is_tok_type(toktype::name)) {
+            unique_ptr<NodeVarAccess> result = make_unique<NodeVarAccess>(current_tok);
             advance();
-            return parse_result(move(node));
-        }
-
-        else if (is_tok(toktype::left_paren)) {
+            return parse_result<unique_ptr<NodeVarAccess>>(move(result));
+        } else if (is_tok_type(toktype::left_paren)) {
             advance();
-            ParseResult parse_expr = parse_expr();
-            if (!parse_expr.error.isEmpty()) return parse_expr;
-            if (check_error(toktype::right_paren)) {
-                return parse_expr;
+            unique_ptr<ParseResult> result = parse_expr();
+            if (!is_tok_type(toktype::right_paren)) {
+                ErrorSyntax error = ErrorSyntax(current_tok, "Expected ')'");
+                return make_unique<ParseResult>(nullptr, error);
             }
-            else {
-                return ParseResult{nullptr, ErrorSyntax(parse_position, "UNEXPECTED TOKEN AFTER EXPR")};
-            }
+            advance();
+            return parse_result<unique_ptr<NodeBinOp>>(move(result->node), current_tok, parse_factor()->node);
         }
+        ErrorSyntax error = ErrorSyntax(current_tok, "Expected factor");
+        return make_unique<ParseResult>(nullptr, error);
     }
 
     unique_ptr<ParseResult> parse_term() {
-        ParseResult parse_factor_result = parse_factor();
-        if (!parse_factor_result.error.isEmpty()) return parse_factor_result;
-        while (is_tok(toktype::mul, "*") || is_tok(toktype::div, "/")) {
+        unique_ptr<ParseResult> result = parse_factor();
+        if (!result.error.isEmpty()) return result;
+        while (is_tok_type(toktype::mul) || is_tok_type(toktype::div)) {
             advance();
-            ParseResult right_result = parse_factor();
-            if (!right_result.error.isEmpty()) return right_result;
-            unique_ptr<NodeBinOp> bin_op_node = make_unique<NodeBinOp>();
-            bin_op_node->left = move(convert_node<variant<unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>>>(parse_factor_result.node));
-            bin_op_node->op_tok = current_tok;
-            bin_op_node->right = move(convert_node<variant<unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>>>(parse_factor_result.node));
-            parse_factor_result->node = move(bin_op_node);
+            unique_ptr<ParseResult> next_result = parse_factor();
+            if (!next_result.error.isEmpty()) return next_result;
+            result->node = make_unique<NodeBinOp>(move(result->node), current_tok, move(next_result->node));
         }
-
-        return parse_factor_result;
+        return result;
     }
 
     unique_ptr<ParseResult> parse_expr() {
-        ParseResult parse_term_result = parse_term();
-        if (!parse_term_result.error.isEmpty()) return parse_term_result;
-        while (is_tok(toktype::plus, "+") || is_tok(toktype::minus, "-")) {
+        unique_ptr<ParseResult> result = parse_term();
+        if (!result.error.isEmpty()) return result;
+        while (is_tok_type(toktype::plus) || is_tok_type(toktype::minus)) {
             advance();
-            ParseResult right_result = parse_term();
-            if (!right_result.error.isEmpty()) return right_result;
-            unique_ptr<NodeBinOp> bin_op_node = make_unique<NodeBinOp>();
-            bin_op_node->left = move(convert_node<variant<unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>>>(parse_term_result.node));
-            bin_op_node->op_tok = current_tok;
-            bin_op_node->right = move(convert_node<variant<unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>>>(parse_term_result.node));
-            parse_term_result.node = move(bin_op_node);
+            unique_ptr<ParseResult> next_result = parse_term();
+            if (!next_result.error.isEmpty()) return next_result;
+            result->node = make_unique<NodeBinOp>(move(result->node), current_tok, move(next_result->node));
         }
-
-        return parse_term_result;
+        return result;
     }
-
-
 
     private:
     int idx = -1;
@@ -226,16 +236,6 @@ class Parser {
         return current_tok.type == type && current_tok.value == value;
     }
 
-    inline std::optional<unique_ptr<ParseResult>> check_error(toktype type) {
-        unique_ptr<ParseResult> result = make_unique<ParseResult>();
-        if (!is_tok_type(type)) {
-            ParsePosition parse_position = ParsePosition(specialpos::UNKNOWN); // temporary
-            result->error = ErrorSyntax(parse_position, std::string("EXPECTED'") + toktype_to_string(type) + "' BUT GOT: '" + current_tok.to_string() + std::string("'"));
-            return move(result);
-        }
-        advance();
-        return std::nullopt;
-    }
 
     template <typename T>
     inline unique_ptr<ParseResult> parse_result(T node) {

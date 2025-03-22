@@ -10,11 +10,11 @@ enum class errortype {
 
 class ErrorIllegalChar {
     private:
-    TokenPosition current_token;
+    Position current_token;
     std::string details;
 
     public:
-    ErrorIllegalChar(TokenPosition current_token_, std::string details_) : current_token(current_token_), details(details_) {}
+    ErrorIllegalChar(Position current_token_, std::string details_) : current_token(current_token_), details(details_) {}
 
     inline void display() {
         std::cout << "ILLEGAL CHARACTER: " << details << " AT LINE: " << current_token.line << " COLUMN: " << current_token.col << "\n";
@@ -23,12 +23,12 @@ class ErrorIllegalChar {
 
 class ErrorSyntax {
     private:
-    ParsePosition pos;
+    Position pos;
     std::string details;
 
     public:
     ErrorSyntax() : pos(0, 0, 0), details("") {}
-    ErrorSyntax(ParsePosition pos_, const std::string &details_) : pos(pos_), details(details_) {}
+    ErrorSyntax(Position pos_, const std::string &details_) : pos(pos_), details(details_) {}
 
     inline void display() {
         if (pos.isSpecial()) {
