@@ -184,9 +184,7 @@ class Parser {
             unique_ptr<ParseResult> result = parse_expr();
             if (!is_tok_type(toktype::right_paren)) {
                 ErrorSyntax error = ErrorSyntax(current_tok, "Expected ')'");
-                unique_ptr<ParseResult> result = make_unique<ParseResult>();
-                result->error = error;
-                return result;
+                return parse_result_error(error);
             }
             advance();
             return parse_result_node<unique_ptr<NodeBinOp>>(move(result->node), current_tok, parse_factor()->node);
