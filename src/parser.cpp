@@ -174,20 +174,22 @@ class Parser {
         if (is_tok_type(toktype::int_lit) || is_tok_type(toktype::float_lit)) {
             unique_ptr<NodeNumber> result = make_unique<NodeNumber>(current_tok);
             advance();
-            return parse_result<unique_ptr<NodeNumber>>(move(result));
+            return parse_result_node<unique_ptr<NodeNumber>>(move(result));
         } else if (is_tok_type(toktype::name)) {
             unique_ptr<NodeVarAccess> result = make_unique<NodeVarAccess>(current_tok);
             advance();
-            return parse_result<unique_ptr<NodeVarAccess>>(move(result));
+            return parse_result_node<unique_ptr<NodeVarAccess>>(move(result));
         } else if (is_tok_type(toktype::left_paren)) {
             advance();
             unique_ptr<ParseResult> result = parse_expr();
             if (!is_tok_type(toktype::right_paren)) {
                 ErrorSyntax error = ErrorSyntax(current_tok, "Expected ')'");
-                return make_unique<ParseResult>(nullptr, error);
+                unique_ptr<ParseResult> result = make_unique<ParseResult>();
+                result->error = error;
+                return result;
             }
             advance();
-            return parse_result<unique_ptr<NodeBinOp>>(move(result->node), current_tok, parse_factor()->node);
+            return parse_result_node<unique_ptr<NodeBinOp>>(move(result->node), current_tok, parse_factor()->node);
         }
         ErrorSyntax error = ErrorSyntax(current_tok, std::string("Expected factor"));
         return make_unique<ParseResult>(nullptr, error);
@@ -238,9 +240,15 @@ class Parser {
 
 
     template <typename T>
-    inline unique_ptr<ParseResult> parse_result(T node) {
+    inline unique_ptr<ParseResult> parse_result_node(T node) {
         unique_ptr<ParseResult> result = make_unique<ParseResult>();
         result->node = move(node);
+        return result;
+    }
+
+    inline unique_ptr<ParseResult> parse_result_error(ErrorSyntax error) {
+        unique_ptr<ParseResult> result = make_unique<ParseResult>();
+        result->error = move(error);
         return result;
     }
 
