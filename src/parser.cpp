@@ -143,14 +143,14 @@ class Parser {
     ParseResult parse_factor() {
         if (is_tok_type(toktype::int_lit) || is_tok_type(toktype::float_lit)) {
             ParsePosition parse_position = ParsePosition(current_tok.pos);
-            unique_ptr<NodeNumber> node = make_unique<NodeNumber>(current_tok.value);
+            unique_ptr<NodeNumber> node = make_unique<NodeNumber>(current_tok);
             advance();
             return parse_result(move(node));
         }
 
         else if (is_tok_type(toktype::name)) {
             ParsePosition parse_position = ParsePosition(current_tok.pos);
-            unique_ptr<NodeVarAccess> node = make_unique<NodeVarAccess>(current_tok.value);
+            unique_ptr<NodeVarAccess> node = make_unique<NodeVarAccess>(current_tok);
             advance();
             return parse_result(move(node));
         }
@@ -175,7 +175,7 @@ class Parser {
             advance();
             ParseResult right_result = parse_factor();
             if (!right_result.error.isEmpty()) return right_result;
-            ParseResult bin_op_node = make_unique<NodeBinOp>();
+            unique_ptr<NodeBinOp> bin_op_node = make_unique<NodeBinOp>();
             bin_op_node->left = move(convert_node<variant<unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>>>(parse_factor_result.node));
             bin_op_node->op_tok = current_tok;
             bin_op_node->right = move(convert_node<variant<unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>>>(parse_factor_result.node));
@@ -192,17 +192,17 @@ class Parser {
             advance();
             ParseResult right_result = parse_term();
             if (!right_result.error.isEmpty()) return right_result;
-            ParseResult bin_op_node = make_unique<NodeBinOp>();
+            unique_ptr<NodeBinOp> bin_op_node = make_unique<NodeBinOp>();
             bin_op_node->left = move(convert_node<variant<unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>>>(parse_term_result.node));
             bin_op_node->op_tok = current_tok;
             bin_op_node->right = move(convert_node<variant<unique_ptr<NodeNumber>, unique_ptr<NodeVarAccess>, unique_ptr<NodeBinOp>>>(parse_term_result.node));
-            parse_term_result->node = move(bin_op_node);
+            parse_term_result.node = move(bin_op_node);
         }
 
         return parse_term_result;
     }
 
-    
+
 
     private:
     int idx = -1;
