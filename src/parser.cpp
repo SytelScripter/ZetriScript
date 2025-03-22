@@ -52,7 +52,7 @@ using anyNode = variant<
     unique_ptr<NodeStmt>, 
     unique_ptr<NodeProg>
 >;
-using expr_node = variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>>
+using expr_node = variant<unique_ptr<NodeNumber>, unique_ptr<NodeBinOp>, unique_ptr<NodeVarAccess>>;
 
 struct NodeNumber {
     Token_ num_tok;
