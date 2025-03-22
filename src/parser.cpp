@@ -195,11 +195,11 @@ class Parser {
 
     unique_ptr<ParseResult> parse_term() {
         unique_ptr<ParseResult> result = parse_factor();
-        if (!result.error.isEmpty()) return result;
+        if (!result->error.isEmpty()) return result;
         while (is_tok_type(toktype::mul) || is_tok_type(toktype::div)) {
             advance();
             unique_ptr<ParseResult> next_result = parse_factor();
-            if (!next_result.error.isEmpty()) return next_result;
+            if (!next_result->error.isEmpty()) return next_result;
             result->node = make_unique<NodeBinOp>(convert_node<expr_node>(move(result->node)), current_tok, convert_node<expr_node>(move(next_result->node)));
         }
         return result;
@@ -207,11 +207,11 @@ class Parser {
 
     unique_ptr<ParseResult> parse_expr() {
         unique_ptr<ParseResult> result = parse_term();
-        if (!result.error.isEmpty()) return result;
+        if (!result->error.isEmpty()) return result;
         while (is_tok_type(toktype::plus) || is_tok_type(toktype::minus)) {
             advance();
             unique_ptr<ParseResult> next_result = parse_term();
-            if (!next_result.error.isEmpty()) return next_result;
+            if (!next_result->error.isEmpty()) return next_result;
             result->node = make_unique<NodeBinOp>(convert_node<expr_node>(move(result->node)), current_tok, convert_node<expr_node>(move(next_result->node)));
         }
         return result;
