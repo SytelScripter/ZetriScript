@@ -160,7 +160,12 @@ class ParseResult {
     anyNode node;
     ErrorSyntax error;
 
-    ParseResult() {}
+    ParseResult(const ErrorSyntax& error_) : error(error_) {}
+    ParseResult(anyNode node_) : node(move(node_)) {}
+
+    inline bool hasError() {
+        return error.has_value();
+    }
 };
 
 class Parser {
@@ -171,104 +176,67 @@ class Parser {
     }
 
     unique_ptr<ParseResult> parse_factor() {
-        if (is_tok_type(toktype::int_lit) || is_tok_type(toktype::float_lit)) {
-            unique_ptr<NodeNumber> result = make_unique<NodeNumber>(current_tok);
+        if (cur_tok.type == toktype::int_lit || cur_tok.type == toktype::float_lit) {
+            Token_ tok = cur_tok;
             advance();
-            return parse_result_node<unique_ptr<NodeNumber>>(move(result));
-        } else if (is_tok_type(toktype::name)) {
-            unique_ptr<NodeVarAccess> result = make_unique<NodeVarAccess>(current_tok);
-            advance();
-            return parse_result_node<unique_ptr<NodeVarAccess>>(move(result));
-        } else if (is_tok_type(toktype::left_paren)) {
-            advance();
-            unique_ptr<ParseResult> result = parse_expr();
-            if (!is_tok_type(toktype::right_paren)) {
-                ErrorSyntax error = ErrorSyntax(current_tok, "Expected ')'");
-                return parse_result_error(error);
-            }
-            advance();
-            return parse_result_node<unique_ptr<NodeBinOp>>(move(result->node), current_tok, parse_factor()->node);
+            return returnNode<NodeNumber>(cur_tok);
         }
-        ErrorSyntax error = ErrorSyntax(current_tok, std::string("Expected factor"));
-        return make_unique<ParseResult>(nullptr, error);
+        if (cur_tok.type == toktype::name) {
+            Token_ tok = cur_tok;
+            advance();
+            return returnNode<NodeVarAccess>(cur_tok);
+        }
     }
 
     unique_ptr<ParseResult> parse_term() {
-        unique_ptr<ParseResult> result = parse_factor();
-        if (!result->error.isEmpty()) return result;
-        while (is_tok_type(toktype::mul) || is_tok_type(toktype::div)) {
+        unique_ptr<ParseResult> factor_res = move(parse_factor());
+        if (factor_res.hasError()) return factor_res;
+        while (cur_tok.type == toktype::mul || cur_tok.type == toktype::div) {
+            Token_ op_tok = cur_tok;
             advance();
-            unique_ptr<ParseResult> next_result = parse_factor();
-            if (!next_result->error.isEmpty()) return next_result;
-            result->node = make_unique<NodeBinOp>(convert_node<expr_node>(move(result->node)), current_tok, convert_node<expr_node>(move(next_result->node)));
+            unique_ptr<ParseResult> right_res = move(parse_factor());
+            if (right_res.hasError()) return right_res;
+            factor_res = returnNode<NodeBinOp>(
+                convertNode(std::move(factor_res->node)),
+                op_tok,
+                convertNode(std::move(right_res->node))
+            );
         }
-        return result;
-    }
-
-    unique_ptr<ParseResult> parse_expr() {
-        unique_ptr<ParseResult> result = parse_term();
-        if (!result->error.isEmpty()) return result;
-        while (is_tok_type(toktype::plus) || is_tok_type(toktype::minus)) {
-            advance();
-            unique_ptr<ParseResult> next_result = parse_term();
-            if (!next_result->error.isEmpty()) return next_result;
-            result->node = make_unique<NodeBinOp>(convert_node<expr_node>(move(result->node)), current_tok, convert_node<expr_node>(move(next_result->node)));
-        }
-        return result;
+        return factor_res;
     }
 
     private:
-    int idx = -1;
+    Token_ cur_tok;
     vector<Token_> tokens;
-    Token_ current_tok;
-
+    int idx = -1;
     inline void advance() {
+        idx++;
         if (idx < tokens.size()) {
-            current_tok = tokens[idx];
+            cur_tok = tokens[idx];
+        } else {
+            cur_tok = Token_{"EOF", "", -1, -1};
         }
     }
 
-    inline bool is_tok_type(toktype type) const {
-        return current_tok.type == type;
+    template<typename Node>
+    inline optional<unique_ptr<Node>> getNode(unique_ptr<ParseResult> input) {
+        if (input.)
     }
 
-    inline bool is_tok(toktype type, const string& value) const {
-        return current_tok.type == type && current_tok.value == value;
+    template<typename Node, typename... Args>
+    inline unique_ptr<ParseResult> returnNode(Args&&... args) {
+        unique_ptr<Node> node = make_unique<Node>(std::forward<Args>(args)...);
+
+        return make_unique<ParseResult>(std::forward<Args>(args)...);
     }
 
-
-    template <typename T>
-    inline unique_ptr<ParseResult> parse_result_node(T node) {
-        unique_ptr<ParseResult> result = make_unique<ParseResult>();
-        result->node = move(node);
-        return result;
-    }
-
-    inline unique_ptr<ParseResult> parse_result_error(ErrorSyntax error) {
-        unique_ptr<ParseResult> result = make_unique<ParseResult>();
-        result->error = move(error);
-        return result;
+    template<typename T>
+    inline anyNode convertNode(T node) {
+        return std::visit([](auto&& value) -> anyNode {
+            return std::move(value);
+        }, std::move(node));
     }
 
     
-    template <typename variantT, size_t Index = 0>
-    variantT convert_node_impl(const anyNode& value) {
-        constexpr size_t variant_size = std::variant_size_v<variantT>;
 
-        if constexpr (Index < variant_size) {
-            using typeT = typename std::variant_alternative<Index, variantT>::type;
-            if constexpr (std::is_same_v<typeT, std::decay_t<decltype(value)>>) {
-                return std::get<Index>(value);  // Return the value wrapped in variant
-            } else {
-                return convert_node_impl<variantT, Index + 1>(value);  // Recurse to next index
-            }
-        } else {
-            throw std::runtime_error("Invalid token type in parse_term");
-        }
-    }
-
-    template <typename variantT>
-    variantT convert_node(const anyNode& nodeAssigned) {
-        return convert_node_impl<variantT>(nodeAssigned);  // Start recursion from index 0
-    }
 };
