@@ -1,0 +1,1 @@
+/usr/bin/g++ -g CMakeFiles/ZetriScript.dir/src/parser.cpp.o -o ZetriScript 

@@ -27,18 +27,12 @@ class ErrorSyntax {
     std::string details;
 
     public:
-    ErrorSyntax() : pos(0, 0, 0), details("") {}
+    ErrorSyntax() : details("") {}
     ErrorSyntax(Token_ pos_, const std::string &details_) : pos(pos_), details(details_) {}
 
     inline void display() {
-        if (pos.isSpecial()) {
-            std::cout << "ERROR OCCURED AT SPECIAL POSITION: " << specialPosToString(pos.specialPos) << "\n";
-
-        }
-        else {
-            std::cout << "ERROR OCCURED AT [" << pos.x << ", " << pos.y << ", " << pos.z << "]\n:";
-            std::cout << "\t" << parser_arrows(pos) << "\n";
-        }
+        std::cout << "ERROR OCCURED AT [" << pos.x << ", " << pos.y << ", " << pos.z << "]\n:";
+        std::cout << "\t" << parser_arrows(pos) << "\n";
         std::cout << "SYNTAX ERROR: " << details;
     }
 

@@ -9,4 +9,4 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add executable target
-add_executable(ZetriScript parser.cpp) # for testing
+add_executable(ZetriScript src/parser.cpp) # for testing

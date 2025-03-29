@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/sytellite/ZetriScript/build",
+  "command": "/usr/bin/g++   -g -std=gnu++20 -o CMakeFiles/ZetriScript.dir/src/parser.cpp.o -c /home/sytellite/ZetriScript/src/parser.cpp",
+  "file": "/home/sytellite/ZetriScript/src/parser.cpp",
+  "output": "CMakeFiles/ZetriScript.dir/src/parser.cpp.o"
+}
+]

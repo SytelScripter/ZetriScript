@@ -12,7 +12,11 @@ namespace pre_str {
     }
 }
 
-inline std::string token_arrows(std::string str, TokenPosition start, TokenPosition end) {
+inline std::string token_arrows(std::string str, Token_ token) {
+    return string_with_arrows(str, token.posStart, token.posEnd);
+}
+
+inline std::string string_with_arrows(std::string str, Position start, Position end) {
     int line = 0;
     int col = 0;
     int i = 0;

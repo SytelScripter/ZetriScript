@@ -15,8 +15,12 @@ class Position {
     int idx = 0;
     std::string fileTxt = "";
 
-    TokenPosition(int x = 0) {}
-    TokenPosition(std::string fileTxt_, int idx_) : fileTxt(fileTxt_), idx(idx_) {}
+    Position(int x = 0) {}
+    Position(std::string fileTxt_, int idx_) : fileTxt(fileTxt_), idx(idx_) {}
+
+    bool operator==(const Position& other) {
+        return line == other.line && col == other.col && idx == other.idx;
+    }
 
     void findLineCol() {
         int i = 0;
@@ -30,4 +34,6 @@ class Position {
             i++;
         }
     }
+
+
 };

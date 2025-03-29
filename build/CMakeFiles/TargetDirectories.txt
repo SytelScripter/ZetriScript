@@ -1,0 +1,3 @@
+/home/sytellite/ZetriScript/build/CMakeFiles/ZetriScript.dir
+/home/sytellite/ZetriScript/build/CMakeFiles/edit_cache.dir
+/home/sytellite/ZetriScript/build/CMakeFiles/rebuild_cache.dir
